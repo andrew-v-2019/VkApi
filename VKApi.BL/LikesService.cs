@@ -34,18 +34,15 @@ namespace VKApi.BL
 
         public List<long> GetUsersWhoLiked(long ownerId, long itemId, LikeObjectType type, VkApi api)
         {
-            var ownerId2 = ownerId;
             uint? count = 1000;
 
             var result = api.Likes.GetList(new LikesGetListParams()
                 {
-
-                    OwnerId = ownerId2,
+                    OwnerId = ownerId,
                     Count = count,
-                    Type = LikeObjectType.Post,
+                    Type = type,
                     ItemId = itemId,
-
-                },true)
+                })
                 .ToList();
             return result;
         }

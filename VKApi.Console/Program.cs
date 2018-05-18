@@ -19,6 +19,8 @@ namespace VKApi.Console
             ServiceInjector.Register<IVkApiFactory, VkApiFactory>();
             ServiceInjector.Register<ILikesService, LikesService>();
             ServiceInjector.Register<IUserService, UserService>();
+            ServiceInjector.Register<IPhotosService, PhotosService>();
+
         }
 
         private static void Main(string[] args)
@@ -27,8 +29,11 @@ namespace VKApi.Console
             var groupService = ServiceInjector.Retrieve<IGroupSerice>();
             var likesService = ServiceInjector.Retrieve<ILikesService>();
             var userService = ServiceInjector.Retrieve<IUserService>();
+            var photoService = ServiceInjector.Retrieve<IPhotosService>();
+            var apiFactory = ServiceInjector.Retrieve<IVkApiFactory>();
+            
 
-            var posts = groupService.GetPosts("znakomstva_krasnoyarsk124"); //poisk_krsk
+            var posts = groupService.GetPosts("poisk_krsk"); //poisk_krsk
             var likedPosts = posts.Where(p => p.Likes.Count > 0).Select(p => p).ToList();
 
             var ownerId = posts.First().OwnerId.Value;
@@ -38,7 +43,6 @@ namespace VKApi.Console
             var users = userService.GetUsersByIds(likerIds);
 
 
-            var apiFactory = ServiceInjector.Retrieve<IVkApiFactory>();
             using (var api = apiFactory.CreateVkApi())
             {
                 var filteredUsers = users.Where(u => ShouldLike(u, api, userService))
@@ -70,7 +74,7 @@ namespace VKApi.Console
                         System.Console.WriteLine("Exception:" + e.Message);
                         System.Threading.Thread.Sleep(TimeSpan.FromMinutes(15));
                     }
-                } while (counter <= count);
+                } while (counter < count);
             }
         }
 
