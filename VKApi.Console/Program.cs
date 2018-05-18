@@ -47,8 +47,8 @@ namespace VKApi.Console
             {
                 var filteredUsers = users.Where(u => ShouldLike(u, api, userService))
                     .Select(x => x)
-                    .OrderByDescending(u => u.LastSeen.Time)
-                    .ThenByDescending(u => u.Online)
+                    .OrderByDescending(u => u.Online)
+                    .ThenByDescending(u => u.LastSeen.Time)
                     .ThenByDescending(u => u.Id)
                     .ToList();
                 var counter = 0;
