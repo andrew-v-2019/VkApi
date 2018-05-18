@@ -50,12 +50,12 @@ namespace VKApi.BL
             return result;
         }
 
-        public void AddLike(long ownerId, long itemId, LikeObjectType type, VkApi api)
+        public bool AddLike(long ownerId, long itemId, LikeObjectType type, VkApi api)
         {
             var likers = GetUsersWhoLiked(ownerId, itemId, type, api);
             if (likers.Contains(api.UserId.Value))
             {
-                return;
+                return false;
             }
             var param = new LikesAddParams()
             {
@@ -64,6 +64,7 @@ namespace VKApi.BL
                 Type = type,
             };
             api.Likes.Add(param);
+            return true;
         }
 
         public void AddLike(long ownerId, List<long> itemIds, LikeObjectType type)

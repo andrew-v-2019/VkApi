@@ -54,19 +54,23 @@ namespace VKApi.Console
                     var user = filteredUsers[counter];
                     var photoId = user.GetPhotoId();
                     try
-                    {                       
-                        likesService.AddLike(user.Id, photoId, LikeObjectType.Photo, api);
+                    {
+                        var result = likesService.AddLike(user.Id, photoId, LikeObjectType.Photo, api);
                         counter++;
-                        var message = $"vk.com/{user.Domain} - Liked. Time {DateTime.Now}. {counter} out of {count}";
+                        var message =
+                            $"vk.com/{user.Domain} - {(result ? "liked" : "passed")}. Time {DateTime.Now}. {counter} out of {count}";
                         System.Console.WriteLine(message);
-                        System.Threading.Thread.Sleep(TimeSpan.FromMinutes(1));
+                        if (result)
+                        {
+                            System.Threading.Thread.Sleep(TimeSpan.FromMinutes(1));
+                        }
                     }
                     catch (Exception e)
                     {
                         System.Console.WriteLine("Exception:" + e.Message);
                         System.Threading.Thread.Sleep(TimeSpan.FromMinutes(15));
                     }
-                } while (counter<=count);
+                } while (counter <= count);
             }
         }
 
