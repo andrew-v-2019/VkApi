@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using VkNet;
@@ -27,6 +28,7 @@ namespace VKApi.BL
                 {
                     var chunk = GetUsersWhoLiked(ownerId, itemId, type, api);
                     likerIds.AddRange(chunk);
+                    System.Threading.Thread.Sleep(TimeSpan.FromSeconds(1));
                 }
             }
             return likerIds.Distinct().ToList();

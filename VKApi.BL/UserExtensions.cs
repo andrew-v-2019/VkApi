@@ -60,13 +60,11 @@ namespace VKApi.BL
             return user.Blacklisted || user.BlacklistedByMe;
         }
 
-        public static List<User> OrderByLsatActivityDateDesc(this List<User> users)
+        public static IOrderedEnumerable<User> OrderByLsatActivityDateDesc(this List<User> users)
         {
-            users = users.OrderByDescending(u => u.Online)
-                .ThenByDescending(u => u.LastSeen != null ? u.LastSeen.Time : DateTime.Now.AddMonths(-5))
-                .Select(u => u).ToList();
-            return users;
-
+            var usersOrdered = users.OrderByDescending(u => u.Online)
+                .ThenByDescending(u => u.LastSeen != null ? u.LastSeen.Time : DateTime.Now.AddMonths(-5));
+            return usersOrdered;
         }
 
         public static long GetPhotoId(this User user)

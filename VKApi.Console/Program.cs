@@ -63,13 +63,13 @@ namespace VKApi.Console
             //    var chunk = _userService.GetUsersByIds(likerIds);
             //    users.AddRange(chunk);
             //}
-            var openGroup = openGroups[0];
-            var posts = _groupService.GetPosts(openGroup.Id.ToString());
+            var groupName = "poisk_krsk";
+            var posts = _groupService.GetPosts(groupName, 1000);
             var likedPosts = posts.Where(p => p.Likes.Count > 0).Select(p => p).ToList();
             var ownerId = posts.First().OwnerId.Value;
             var postIds = likedPosts.Select(x => x.Id.Value).ToList();
             var likerIds = _likesService.GetUsersWhoLiked(ownerId, postIds, LikeObjectType.Post);
-            System.Threading.Thread.Sleep(TimeSpan.FromSeconds(1));
+           
             var chunk = _userService.GetUsersByIds(likerIds);
             users.AddRange(chunk);
 

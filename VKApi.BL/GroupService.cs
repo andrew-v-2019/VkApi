@@ -7,7 +7,7 @@ using VkNet.Model;
 using VkNet.Model.RequestParams;
 using VKApi.BL.Interfaces;
 using System;
-using System.Threading.Tasks;
+using System.Linq.Dynamic;
 
 namespace VKApi.BL
 {
@@ -26,33 +26,32 @@ namespace VKApi.BL
             _apiFactory = apiFactory;
         }
 
-        public List<Post> GetPosts(string groupName)
+        public List<Post> GetPosts(string groupName, ulong? count = null)
         {
             const ulong step = 100;
             ulong offset = 0;
             using (var api = _apiFactory.CreateVkApi())
             {
                 var group = GetByName(groupName, api);
-                var param = new WallGetParams()
+                var posts = new List<Post>();
+                ulong totalCount;
+                do
                 {
-                    OwnerId = -group.Id,
-                    Filter = WallFilter.All,
-                    Count = step,
-                    Offset = offset
-                };
-                var getResult = api.Wall.Get(param);
-                var posts = getResult.WallPosts.Select(p => p).ToList();
-                var totalCount = getResult.TotalCount;
-
-                while (offset < totalCount)
-                {
-                    offset = offset + step;
-                    param.Offset = offset;
-                    getResult = api.Wall.Get(param);
+                    var param = new WallGetParams()
+                    {
+                        OwnerId = -group.Id,
+                        Filter = WallFilter.All,
+                        Count = step,
+                        Offset = offset
+                    }; 
+                    var getResult = api.Wall.Get(param);
                     var postsChunk = getResult.WallPosts.Select(p => p).ToList();
                     posts.AddRange(postsChunk);
+                    offset = offset + step;
+                    param.Offset = offset;
                     totalCount = getResult.TotalCount;
-                }
+                } while (!count.HasValue ? offset < totalCount : offset < count.Value);
+
                 var orderredPosts = posts.Where(p => p.Likes != null && p.Likes.Count > 0)
                     .OrderByDescending(p => p.Date)
                     .ThenByDescending(p => p.Likes.Count)
@@ -63,7 +62,7 @@ namespace VKApi.BL
 
         public void BlackListGroupMembsersByGroupName(string searchPhrase, double wait = 1.5, string city = "", bool olderFirst = false)
         {
-            var groups = new List<Group>();
+            List<Group> groups;
             using (var api = _apiFactory.CreateVkApi())
             {
                 var p = new GroupsSearchParams() { Query = searchPhrase, Count = 1000 };
@@ -88,35 +87,41 @@ namespace VKApi.BL
         private void BlackListGroupsMembsers(List<Group> groups, double wait = 1.5, string city = "")
         {
             var blackListedUserIds = _userService.GetBannedIds().ToList();
-            foreach (Group g in groups)
+            foreach (var g in groups)
             {
                 BlackListGroupMembsers(g.Id.ToString(), blackListedUserIds, wait, city);
             }
         }
 
-        public void BlackListGroupMembsers(string groupId, List<long> blackListedUserIds, double wait = 1.5, string city = "", bool olderFirst = false)
+        public void BlackListGroupMembsers(string groupId, List<long> blackListedUserIds, double wait = 1.5,
+            string city = "", bool olderFirst = false)
         {
             var badUsers = GetGroupMembers(groupId).ToList();
             Console.Clear();
-            var badUsersFiltered = badUsers.Where(u => !blackListedUserIds.Contains(u.Id)).ToList().
-                OrderByLsatActivityDateDesc()
-                .OrderByDescending(u => u.Sex == VkNet.Enums.Sex.Female).ToList();
+
+            var badUsersFiltered = badUsers.Where(u => !blackListedUserIds.Contains(u.Id)).ToList();
+
+            var badUsersOrdered = badUsersFiltered
+                .OrderByLsatActivityDateDesc()
+                .ThenByDescending(u => u.Sex == VkNet.Enums.Sex.Female);
 
             if (!string.IsNullOrWhiteSpace(city))
             {
-                badUsersFiltered = badUsersFiltered.OrderByDescending(u => u.FromCity(city)).ToList();
+                badUsersOrdered = badUsersOrdered.ThenByDescending(u => u.FromCity(city));
             }
 
-            badUsersFiltered = olderFirst
-                ? badUsersFiltered.OrderBy(u => u.Id).ToList()
-                : badUsersFiltered.OrderByDescending(u => u.Id).ToList();
+            badUsersOrdered = olderFirst
+                ? badUsersOrdered.ThenBy(u => u.Id)
+                : badUsersOrdered.ThenByDescending(u => u.Id);
+
+            var totalUsersList = badUsersOrdered.ToList();
 
             var count = badUsers.Count;
             var counter = 0;
             using (var api = _apiFactory.CreateVkApi())
             {
                 Console.Clear();
-                foreach (User u in badUsersFiltered)
+                foreach (var u in totalUsersList)
                 {
                     try
                     {
@@ -130,6 +135,7 @@ namespace VKApi.BL
                     {
                         Console.WriteLine(e.Message);
                     }
+
                     System.Threading.Thread.Sleep(TimeSpan.FromSeconds(wait));
 
                 }
