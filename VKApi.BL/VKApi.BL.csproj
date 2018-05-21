@@ -76,6 +76,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GroupExtensions.cs" />
     <Compile Include="PhotoService.cs" />
     <Compile Include="ConfigurationProvider.cs" />
     <Compile Include="GroupService.cs" />

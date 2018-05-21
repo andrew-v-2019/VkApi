@@ -22,11 +22,18 @@ namespace VKApi.BL
             var d = Convert.ToInt32(birthDateString[0]);
             var m = Convert.ToInt32(birthDateString[1]);
             var y = Convert.ToInt32(birthDateString[2]);
-            var birthDate = new DateTime(y, m, d);
-            var birthDateYear = birthDate.Year;
-            var now = DateTime.Now.Year;
-            var years = now - birthDateYear;
-            return years >= min && years <= max;
+            try
+            {
+                var birthDate = new DateTime(y, m, d);
+                var birthDateYear = birthDate.Year;
+                var now = DateTime.Now.Year;
+                var years = now - birthDateYear;
+                return years >= min && years <= max;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public static bool HasBeenOfflineMoreThanDays(this User user, int days)
@@ -51,6 +58,15 @@ namespace VKApi.BL
         public static bool BlackListed(this User user)
         {
             return user.Blacklisted || user.BlacklistedByMe;
+        }
+
+        public static List<User> OrderByLsatActivityDateDesc(this List<User> users)
+        {
+            users = users.OrderByDescending(u => u.Online)
+                .ThenByDescending(u => u.LastSeen != null ? u.LastSeen.Time : DateTime.Now.AddMonths(-5))
+                .Select(u => u).ToList();
+            return users;
+
         }
 
         public static long GetPhotoId(this User user)

@@ -18,6 +18,25 @@ namespace VKApi.BL
             _apiFactory = apiFactory;
         }
 
+        public bool BanUser(User userToBan, VkApi api)
+        {
+            var r = api.Account.BanUser(userToBan.Id);
+            return r;
+        }
+
+      
+
+        public void BanUsers(List<User> usersToBan)
+        {
+            using (var api = _apiFactory.CreateVkApi())
+            {
+                foreach (User u in usersToBan)
+                {
+                    BanUser(u, api);
+                }
+            }
+        }
+
         public List<User> GetUsersByIds(List<long> userIds)
         {
             var users = new List<User>();
@@ -25,7 +44,6 @@ namespace VKApi.BL
             using (var api = _apiFactory.CreateVkApi())
             {
                 var count = userIds.Count;
-
                 for (var offset = 0; offset <= count; offset = offset + step)
                 {
                     var idsChunk = userIds.Skip(offset).Take(step);
@@ -34,6 +52,26 @@ namespace VKApi.BL
                 }
             }
             return users;
+        }
+
+        public List<long> GetBannedIds()
+        {
+            var users = new List<User>();
+            const int step = 200;
+            var offset = 0;
+            var chunkCount = 0;
+            using (var api = _apiFactory.CreateVkApi())
+            {
+                do
+                {
+                    var chunk = api.Account.GetBanned(offset, step);
+                    users.AddRange(chunk);
+                    offset = offset + step;
+                    chunkCount = chunk.Count;
+                } while (chunkCount == step);
+            }
+            var ids = users.Select(u => u.Id).ToList();
+            return ids;
         }
 
 

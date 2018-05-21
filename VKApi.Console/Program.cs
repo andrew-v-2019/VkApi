@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using VkNet;
 using VkNet.Enums;
@@ -12,7 +13,7 @@ namespace VKApi.Console
 {
     class Program
     {
-        private static void UnityConfig()
+        private static void ConfigureServices()
         {
             ServiceInjector.Register<IGroupSerice, GroupService>();
             ServiceInjector.Register<IConfigurationProvider, ConfigurationProvider>();
@@ -23,34 +24,76 @@ namespace VKApi.Console
 
         }
 
+        private static IGroupSerice _groupService;
+        private static ILikesService _likesService;
+        private static IUserService _userService;
+        private static IVkApiFactory _apiFactory;
+
+        private static void InjectServices()
+        {
+            _groupService = ServiceInjector.Retrieve<IGroupSerice>();
+            _likesService = ServiceInjector.Retrieve<ILikesService>();
+            _userService = ServiceInjector.Retrieve<IUserService>();
+            _apiFactory = ServiceInjector.Retrieve<IVkApiFactory>();
+        }
+
         private static void Main(string[] args)
         {
-            UnityConfig();
-            var groupService = ServiceInjector.Retrieve<IGroupSerice>();
-            var likesService = ServiceInjector.Retrieve<ILikesService>();
-            var userService = ServiceInjector.Retrieve<IUserService>();
-            var photoService = ServiceInjector.Retrieve<IPhotosService>();
-            var apiFactory = ServiceInjector.Retrieve<IVkApiFactory>();
-            
+            ConfigureServices();
+            InjectServices();
 
-            var posts = groupService.GetPosts("poisk_krsk"); //poisk_krsk
+            const string searchPhrase = "знакомства красноярск";
+
+
+            var groups = _groupService.GetGroupsBySearchPhrase(searchPhrase);
+
+            var closedGroups = groups.GetClosedGroups();
+            var openGroups = groups.GetOpenGroups();
+            System.Console.Clear();
+
+            var users = new List<User>();
+            //foreach (var openGroup in openGroups)
+            //{
+            //    var posts = _groupService.GetPosts(openGroup.Id.ToString());
+            //    var likedPosts = posts.Where(p => p.Likes.Count > 0).Select(p => p).ToList();
+            //    var ownerId = posts.First().OwnerId.Value;
+            //    var postIds = likedPosts.Select(x => x.Id.Value).ToList();
+            //    var likerIds = _likesService.GetUsersWhoLiked(ownerId, postIds, LikeObjectType.Post);
+            //    System.Threading.Thread.Sleep(TimeSpan.FromSeconds(1));
+            //    var chunk = _userService.GetUsersByIds(likerIds);
+            //    users.AddRange(chunk);
+            //}
+            var openGroup = openGroups[0];
+            var posts = _groupService.GetPosts(openGroup.Id.ToString());
             var likedPosts = posts.Where(p => p.Likes.Count > 0).Select(p => p).ToList();
-
             var ownerId = posts.First().OwnerId.Value;
             var postIds = likedPosts.Select(x => x.Id.Value).ToList();
+            var likerIds = _likesService.GetUsersWhoLiked(ownerId, postIds, LikeObjectType.Post);
+            System.Threading.Thread.Sleep(TimeSpan.FromSeconds(1));
+            var chunk = _userService.GetUsersByIds(likerIds);
+            users.AddRange(chunk);
 
-            var likerIds = likesService.GetUsersWhoLiked(ownerId, postIds, LikeObjectType.Post);
-            var users = userService.GetUsersByIds(likerIds);
+            //foreach (var cloedGroup in closedGroups)
+            //{
+            //    try
+            //    {
+            //        var closedMembers = _groupService.GetGroupMembers(cloedGroup.Id.ToString());
+            //        users.AddRange(closedMembers);
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        System.Console.WriteLine(e.Message);
+            //    }
 
+            //}
 
-            using (var api = apiFactory.CreateVkApi())
+            System.Console.Clear();
+            using (var api = _apiFactory.CreateVkApi())
             {
-                var filteredUsers = users.Where(u => ShouldLike(u, api, userService))
-                    .Select(x => x)
-                    .OrderByDescending(u => u.Online)
-                    .ThenByDescending(u => u.LastSeen.Time)
-                    .ThenByDescending(u => u.Id)
-                    .ToList();
+                var filteredUsers = users.OrderByLsatActivityDateDesc()
+                                            .Where(u => ShouldLike(u, api, _userService))
+                                            .Select(x => x)
+                                            .ToList();
                 var counter = 0;
                 var count = filteredUsers.Count;
                 do
@@ -59,7 +102,7 @@ namespace VKApi.Console
                     var photoId = user.GetPhotoId();
                     try
                     {
-                        var result = likesService.AddLike(user.Id, photoId, LikeObjectType.Photo, api);
+                        var result = _likesService.AddLike(user.Id, photoId, LikeObjectType.Photo, api);
                         counter++;
                         var message =
                             $"vk.com/{user.Domain} - {(result ? "liked" : "passed")}. Time {DateTime.Now}. {counter} out of {count}";
@@ -67,16 +110,19 @@ namespace VKApi.Console
                         if (result)
                         {
                             System.Threading.Thread.Sleep(TimeSpan.FromMinutes(1));
+                            System.Console.Clear();
                         }
                     }
                     catch (Exception e)
                     {
                         System.Console.WriteLine("Exception:" + e.Message);
                         System.Threading.Thread.Sleep(TimeSpan.FromMinutes(15));
+                        System.Console.Clear();
                     }
                 } while (counter < count);
             }
         }
+
 
         private static bool ShouldLike(User user, VkApi api, IUserService userService)
         {
