@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VKApi.BL;
 using VKApi.BL.Interfaces;
 
@@ -28,10 +24,11 @@ namespace VKApi.Console.BlackListGroupsMembsers
             var phrase = configurationProvider.GetConfig("SearchPhrase");
             var waitStr = configurationProvider.GetConfig("Wait");
             var city = configurationProvider.GetConfig("City");
+            var olderFirst = Convert.ToBoolean(configurationProvider.GetConfig("OlderFirst"));
 
-            double wait = Convert.ToDouble(waitStr);
+            var wait = Convert.ToDouble(waitStr);
             System.Console.Clear();
-            groupService.BlackListGroupMembsersByGroupName(phrase, wait, city);
+            groupService.BlackListGroupMembsersByGroupName(phrase, wait, city, olderFirst);
         }
     }
 }

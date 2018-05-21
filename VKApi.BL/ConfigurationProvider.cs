@@ -1,4 +1,5 @@
 ﻿using System.Configuration;
+using System.Linq;
 using VKApi.BL.Interfaces;
 
 namespace VKApi.BL
@@ -7,8 +8,9 @@ namespace VKApi.BL
     {
         public string GetConfig(string name)
         {
-            var configvalue2 = ConfigurationManager.AppSettings[name];
-            return configvalue2;
+            if (!ConfigurationManager.AppSettings.AllKeys.Contains(name)) return string.Empty;
+            var configvalue = ConfigurationManager.AppSettings[name];
+            return configvalue;
         }
     }
 }

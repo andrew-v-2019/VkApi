@@ -61,7 +61,7 @@ namespace VKApi.BL
             }
         }
 
-        public void BlackListGroupMembsersByGroupName(string searchPhrase, double wait = 1.5, string city = "")
+        public void BlackListGroupMembsersByGroupName(string searchPhrase, double wait = 1.5, string city = "", bool olderFirst = false)
         {
             var groups = new List<Group>();
             using (var api = _apiFactory.CreateVkApi())
@@ -94,7 +94,7 @@ namespace VKApi.BL
             }
         }
 
-        public void BlackListGroupMembsers(string groupId, List<long> blackListedUserIds, double wait = 1.5, string city = "")
+        public void BlackListGroupMembsers(string groupId, List<long> blackListedUserIds, double wait = 1.5, string city = "", bool olderFirst = false)
         {
             var badUsers = GetGroupMembers(groupId).ToList();
             Console.Clear();
@@ -106,6 +106,10 @@ namespace VKApi.BL
             {
                 badUsersFiltered = badUsersFiltered.OrderByDescending(u => u.FromCity(city)).ToList();
             }
+
+            badUsersFiltered = olderFirst
+                ? badUsersFiltered.OrderBy(u => u.Id).ToList()
+                : badUsersFiltered.OrderByDescending(u => u.Id).ToList();
 
             var count = badUsers.Count;
             var counter = 0;
