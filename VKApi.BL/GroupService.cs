@@ -116,7 +116,7 @@ namespace VKApi.BL
 
             var totalUsersList = badUsersOrdered.ToList();
 
-            var count = badUsers.Count;
+            var count = totalUsersList.Count;
             var counter = 0;
             using (var api = _apiFactory.CreateVkApi())
             {
