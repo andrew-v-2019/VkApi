@@ -30,3 +30,10 @@ _ReSharper*/
 .vs/
 #Nuget packages folder
 packages/
+/.idea/.idea.VKApi/.idea/.name
+/.idea/.idea.VKApi/.idea/contentModel.xml
+/.idea/.idea.VKApi/.idea/indexLayout.xml
+/.idea/.idea.VKApi/.idea/modules.xml
+/.idea/.idea.VKApi/.idea/vcs.xml
+/.idea/.idea.VKApi/.idea/workspace.xml
+/.idea/.idea.VKApi/riderModule.iml

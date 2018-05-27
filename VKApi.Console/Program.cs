@@ -69,7 +69,7 @@ namespace VKApi.Console
             var ownerId = posts.First().OwnerId.Value;
             var postIds = likedPosts.Select(x => x.Id.Value).ToList();
             var likerIds = _likesService.GetUsersWhoLiked(ownerId, postIds, LikeObjectType.Post);
-           
+
             var chunk = _userService.GetUsersByIds(likerIds);
             users.AddRange(chunk);
 
@@ -161,6 +161,7 @@ namespace VKApi.Console
             {
                 return false;
             }
+            System.Threading.Thread.Sleep(TimeSpan.FromSeconds(1));
             return !userService.HaveCommonFriends(user.Id, api.UserId.Value, api);
         }
     }
