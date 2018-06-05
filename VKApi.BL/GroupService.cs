@@ -130,14 +130,22 @@ namespace VKApi.BL
                             $"vk.com/{u.Domain} - {(r ? "banned" : "passed")}. Time {DateTime.Now}. {counter} out of {count}";
                         Console.WriteLine(message);
                         counter++;
+                        System.Threading.Thread.Sleep(TimeSpan.FromSeconds(wait));
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.Message);
+                        if (e.Message.Contains("owner_id is incorrect"))
+                        {
+                            var message =
+                                $"vk.com/{u.Domain} - deleted. Time {DateTime.Now}. {counter} out of {count}";
+                            Console.WriteLine(message);
+                            counter++;
+                        }
+                        else
+                        {
+                            System.Threading.Thread.Sleep(TimeSpan.FromSeconds(wait));
+                        }
                     }
-
-                    System.Threading.Thread.Sleep(TimeSpan.FromSeconds(wait));
-
                 }
             }
         }
