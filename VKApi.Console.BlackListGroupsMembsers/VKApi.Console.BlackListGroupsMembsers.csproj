@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{E547678A-22E8-437F-A1D4-264D113F164B}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>VKApi.Console.BlackListGroupsMembsers</RootNamespace>
-    <AssemblyName>VKApi.Console.BlackListGroupsMembsers</AssemblyName>
+    <RootNamespace>VKApi.Console.Blacklister</RootNamespace>
+    <AssemblyName>VKApi.Console.Blacklister</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

@@ -95,9 +95,10 @@ namespace VKApi.Console
                                             .Select(x => x)
                                             .ToList();
                 var counter = 0;
-                var count = filteredUsers.Count;
+                var count = filteredUsers.Count-1;
                 do
                 {
+                    var wait = (counter % 2 > 0) ? 1 : 2;
                     var user = filteredUsers[counter];
                     var photoId = user.GetPhotoId();
                     try
@@ -109,14 +110,15 @@ namespace VKApi.Console
                         System.Console.WriteLine(message);
                         if (result)
                         {
-                            System.Threading.Thread.Sleep(TimeSpan.FromMinutes(1));
+                            
+                            System.Threading.Thread.Sleep(TimeSpan.FromMinutes(wait));
                             System.Console.Clear();
                         }
                     }
                     catch (Exception e)
                     {
                         System.Console.WriteLine("Exception:" + e.Message);
-                        System.Threading.Thread.Sleep(TimeSpan.FromMinutes(15));
+                        System.Threading.Thread.Sleep(TimeSpan.FromMinutes(wait));
                         System.Console.Clear();
                     }
                 } while (counter < count);
@@ -126,7 +128,7 @@ namespace VKApi.Console
 
         private static bool ShouldLike(User user, VkApi api, IUserService userService)
         {
-            if (!user.IsAgeBetween(16, 35))
+            if (!user.IsAgeBetween(18, 35))
             {
                 return false;
             }

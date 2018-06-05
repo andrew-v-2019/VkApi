@@ -1,10 +1,11 @@
 ﻿using System;
 using VKApi.BL;
 using VKApi.BL.Interfaces;
+using VKApi.Console.BlackListGroupsMembsers;
 
-namespace VKApi.Console.BlackListGroupsMembsers
+namespace VKApi.Console.Blacklister
 {
-    class Program
+    internal static class Program
     {
         private static void ConfigureServices()
         {
@@ -14,7 +15,7 @@ namespace VKApi.Console.BlackListGroupsMembsers
             ServiceInjector.Register<IUserService, UserService>();
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             ConfigureServices();
 
