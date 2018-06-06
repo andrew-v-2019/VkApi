@@ -102,7 +102,7 @@ namespace VKApi.BL
             var badUsersFiltered = badUsers.Where(u => !blackListedUserIds.Contains(u.Id)).ToList();
 
             var badUsersOrdered = badUsersFiltered
-                .OrderByLsatActivityDateDesc()
+                .OrderByLsatActivityDateDesc().ThenBy(u => u.IsDeactivated)
                 .ThenByDescending(u => u.Sex == VkNet.Enums.Sex.Female);
 
             if (!string.IsNullOrWhiteSpace(city))
