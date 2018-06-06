@@ -8,6 +8,7 @@ using VkNet.Model.RequestParams;
 using VKApi.BL.Interfaces;
 using System;
 using System.Linq.Dynamic;
+using System.Runtime.InteropServices;
 
 namespace VKApi.BL
 {
@@ -97,6 +98,9 @@ namespace VKApi.BL
             string city = "", bool olderFirst = false)
         {
             const string deletedUserText = "DELETED";
+            const int secondsToSleepAfterOwnerIdIsincorrect = 1;
+            const int secondsToSleepAfterOtherExceptions = 1;
+            const int hoursToSleepAfterFloodControl = 12;
             var badUsers = GetGroupMembers(groupId).ToList();
             Console.Clear();
 
@@ -126,29 +130,42 @@ namespace VKApi.BL
                 Console.Clear();
                 foreach (var u in totalUsersList)
                 {
+                    var sleep = TimeSpan.FromSeconds(wait);
+                    string message;
                     try
                     {
                         var r = _userService.BanUser(u, api);
-                        var message =
+                        message =
                             $"vk.com/{u.Domain} - {(r ? "banned" : "passed")}. Time {DateTime.Now}. {counter} out of {count}";
-                        Console.WriteLine(message);
+
                         counter++;
-                        System.Threading.Thread.Sleep(TimeSpan.FromSeconds(wait));
                     }
                     catch (Exception e)
                     {
                         if (e.Message.Contains("owner_id is incorrect"))
                         {
-                            var message =
+                            message =
                                 $"vk.com/{u.Domain} - deleted. Time {DateTime.Now}. {counter} out of {count}";
-                            Console.WriteLine(message);
                             counter++;
+                            sleep = TimeSpan.FromSeconds(secondsToSleepAfterOwnerIdIsincorrect);
                         }
                         else
                         {
-                            System.Threading.Thread.Sleep(TimeSpan.FromSeconds(wait));
+                            if (e.Message.ToLower().Contains("flood"))
+                            {
+                                message = "flood control. Sleeping...";
+                                sleep = TimeSpan.FromHours(hoursToSleepAfterFloodControl);
+                            }
+                            else
+                            {
+                                message = e.Message.Trim();
+                                sleep = TimeSpan.FromSeconds(secondsToSleepAfterOtherExceptions);
+                            }
                         }
                     }
+
+                    Console.WriteLine(message);
+                    System.Threading.Thread.Sleep(sleep);
                 }
             }
         }
