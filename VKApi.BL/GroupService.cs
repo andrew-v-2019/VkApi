@@ -96,14 +96,17 @@ namespace VKApi.BL
         public void BlackListGroupMembsers(string groupId, List<long> blackListedUserIds, double wait = 1.5,
             string city = "", bool olderFirst = false)
         {
+            const string deletedUserText = "DELETED";
             var badUsers = GetGroupMembers(groupId).ToList();
             Console.Clear();
 
             var badUsersFiltered = badUsers.Where(u => !blackListedUserIds.Contains(u.Id)).ToList();
 
             var badUsersOrdered = badUsersFiltered
-                .OrderByLsatActivityDateDesc().ThenBy(u => u.IsDeactivated)
-                .ThenByDescending(u => u.Sex == VkNet.Enums.Sex.Female);
+                .OrderByLsatActivityDateDesc();
+
+            badUsersOrdered = badUsersOrdered.ThenBy(u => u.IsDeactivated)
+                .ThenBy(u => u.FirstName.Contains(deletedUserText));
 
             if (!string.IsNullOrWhiteSpace(city))
             {
@@ -176,7 +179,7 @@ namespace VKApi.BL
                 Offset = offset,
                 GroupId = groupName,
                 Sort = _getMemebersSort,
-                Fields = fields,
+                Fields = fields
             };
             var usersChunk = api.Groups.GetMembers(param);
             return usersChunk.ToList();

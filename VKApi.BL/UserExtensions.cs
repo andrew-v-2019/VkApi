@@ -62,9 +62,8 @@ namespace VKApi.BL
 
         public static IOrderedEnumerable<User> OrderByLsatActivityDateDesc(this List<User> users)
         {
-            var usersOrdered = users.
-                OrderByDescending(u => u.Online)
-                .ThenByDescending(u => u.LastSeen != null ? u.LastSeen.Time : DateTime.Now.AddMonths(-5));
+            var usersOrdered = users.OrderByDescending(u => u.Online)
+                .ThenByDescending(u => u.LastSeen != null ? u.LastSeen.Time : new DateTime(1970, 1, 1));
             return usersOrdered;
         }
 
