@@ -136,7 +136,7 @@ namespace VKApi.BL
                     {
                         var r = _userService.BanUser(u, api);
                         message =
-                            $"vk.com/{u.Domain} - {(r ? "banned" : "passed")}. Time {DateTime.Now}. {counter} out of {count}";
+                            $"vk.com/{u.Domain} - {(r ? "banned" : "passed")}. Time {DateTime.Now}. {counter} out of {count}. {count - counter} - left.";
 
                         counter++;
                     }
@@ -145,7 +145,7 @@ namespace VKApi.BL
                         if (e.Message.Contains("owner_id is incorrect"))
                         {
                             message =
-                                $"vk.com/{u.Domain} - deleted. Time {DateTime.Now}. {counter} out of {count}";
+                                $"vk.com/{u.Domain} - deleted. Time {DateTime.Now}. {counter} out of {count}. {count - counter} - left.";
                             counter++;
                             sleep = TimeSpan.FromSeconds(secondsToSleepAfterOwnerIdIsincorrect);
                         }
