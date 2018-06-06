@@ -1,7 +1,6 @@
 ﻿using System;
 using VKApi.BL;
 using VKApi.BL.Interfaces;
-using VKApi.Console.BlackListGroupsMembsers;
 
 namespace VKApi.Console.Blacklister
 {

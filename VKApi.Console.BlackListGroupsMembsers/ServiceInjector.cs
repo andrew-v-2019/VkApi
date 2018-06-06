@@ -1,7 +1,7 @@
 ﻿using Unity;
 using Unity.Lifetime;
 
-namespace VKApi.Console.BlackListGroupsMembsers
+namespace VKApi.Console.Blacklister
 {
     public static class ServiceInjector
     {

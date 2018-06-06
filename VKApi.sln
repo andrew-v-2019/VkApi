@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VKApi.BL", "VKApi.BL\VKApi.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VKApi.Console", "VKApi.Console\VKApi.Console.csproj", "{125896FB-E046-420B-BED5-E6D988605D91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VKApi.Console.BlackListGroupsMembsers", "VKApi.Console.BlackListGroupsMembsers\VKApi.Console.BlackListGroupsMembsers.csproj", "{E547678A-22E8-437F-A1D4-264D113F164B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VKApi.Console.Blacklister", "VKApi.Console.BlackListGroupsMembsers\VKApi.Console.Blacklister.csproj", "{E547678A-22E8-437F-A1D4-264D113F164B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
