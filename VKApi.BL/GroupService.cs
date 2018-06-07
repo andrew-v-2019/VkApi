@@ -102,9 +102,11 @@ namespace VKApi.BL
             const int secondsToSleepAfterOtherExceptions = 1;
             const int hoursToSleepAfterFloodControl = 12;
             var badUsers = GetGroupMembers(groupId).ToList();
+            var idsToExclude = new List<long>() {458689189};
             Console.Clear();
 
-            var badUsersFiltered = badUsers.Where(u => !blackListedUserIds.Contains(u.Id)).ToList();
+            var badUsersFiltered = badUsers.Where(u => !blackListedUserIds.Contains(u.Id))
+                .Where(u => !idsToExclude.Contains(u.Id)).ToList();
 
             var badUsersOrdered = badUsersFiltered
                 .OrderByLsatActivityDateDesc();
