@@ -6,9 +6,6 @@ using VkNet.Enums.SafetyEnums;
 using VkNet.Model;
 using VkNet.Model.RequestParams;
 using VKApi.BL.Interfaces;
-using System;
-using System.Linq.Dynamic;
-using System.Runtime.InteropServices;
 
 namespace VKApi.BL
 {
@@ -42,7 +39,7 @@ namespace VKApi.BL
                         Filter = WallFilter.All,
                         Count = step,
                         Offset = offset
-                    }; 
+                    };
                     var getResult = api.Wall.Get(param);
                     var postsChunk = getResult.WallPosts.Select(p => p).ToList();
                     posts.AddRange(postsChunk);
@@ -63,13 +60,13 @@ namespace VKApi.BL
         {
             using (var api = _apiFactory.CreateVkApi())
             {
-                var p = new GroupsSearchParams() { Query = searchPhrase, Count = count };
+                var p = new GroupsSearchParams() {Query = searchPhrase, Count = count};
                 var searchRes = api.Groups.Search(p);
                 var groups = searchRes.ToList();
                 return groups;
             }
         }
-   
+
 
         public List<User> GetGroupMembers(string groupName, UsersFields fields = null, int? count = null)
         {
@@ -77,6 +74,7 @@ namespace VKApi.BL
             {
                 fields = UsersFields.All;
             }
+
             using (var api = _apiFactory.CreateVkApi())
             {
                 var count2 = count ?? GetGroupMembersCount(groupName, api);
@@ -86,6 +84,7 @@ namespace VKApi.BL
                     var usersChunk = GetGroupMembersOffset(offset, groupName, api, fields);
                     users.AddRange(usersChunk);
                 }
+
                 return users;
             }
         }
@@ -111,15 +110,8 @@ namespace VKApi.BL
 
         private static Group GetByName(string groupName, VkApi api)
         {
-            var groupId = new List<string> { groupName };
+            var groupId = new List<string> {groupName};
             var res = api.Groups.GetById(groupId, groupName, GroupsFields.MembersCount);
-            return res.FirstOrDefault();
-        }
-
-        private Group GetById(string groupId, VkApi api)
-        {
-            var groupIdList = new List<string> { groupId };
-            var res = api.Groups.GetById(groupIdList, groupId, GroupsFields.All);
             return res.FirstOrDefault();
         }
     }

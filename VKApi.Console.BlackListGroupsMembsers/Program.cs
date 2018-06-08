@@ -35,6 +35,8 @@ namespace VKApi.Console.Blacklister
         private static int _secondsToSleepAfterOtherExceptions = 1;
         private static int _hoursToSleepAfterFloodControl = 12;
 
+        private static bool _reverseTotalList = false;
+
         private static int _groupSearchCount = 1000;
 
         private static List<long> _idsToExclude;
@@ -43,6 +45,8 @@ namespace VKApi.Console.Blacklister
         private static void FillConfigurations()
         {
             _phrase = _configurationProvider.GetConfig("SearchPhrase");
+
+            _reverseTotalList = Convert.ToBoolean(_configurationProvider.GetConfig("reverseTotalList"));
 
             var waitStr = _configurationProvider.GetConfig("Wait");
             _wait = !string.IsNullOrWhiteSpace(waitStr) ? Convert.ToDouble(waitStr) : 23;
@@ -168,9 +172,24 @@ namespace VKApi.Console.Blacklister
             }
 
             var totalUsersList = badUsersOrdered.ToList();
-            return totalUsersList;
+
+            if (!_reverseTotalList)
+            {
+                return totalUsersList;
+            }
+
+            var reversedList = totalUsersList.Where(u => !u.FirstName.Contains(_deletedUserText)).Select(u => u)
+                .ToList();
+
+            reversedList.Reverse();
+
+            var deleted = totalUsersList.Where(u => u.FirstName.Contains(_deletedUserText)).Select(u => u)
+                .ToList();
+            reversedList.AddRange(deleted);
+            return reversedList;
+
         }
-        
-        
+
+
     }
 }
