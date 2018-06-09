@@ -135,7 +135,7 @@ namespace VKApi.Console.Blacklister
                 }
             }
         }
-        
+
 
         private static List<User> GetGroupsMembersByPhrase()
         {
@@ -148,13 +148,13 @@ namespace VKApi.Console.Blacklister
                 badUsers.AddRange(groupBadUsers);
             }
 
-            return badUsers;
+            return badUsers.Distinct().ToList();
         }
 
 
         private static List<User> PrepareUserList(List<User> badUsers)
         {
-            var blackListedUserIds = _userService.GetBannedIds().ToList();
+            var blackListedUserIds = _userService.GetBannedIds().ToList().Distinct();
             System.Console.Clear();
 
             var badUsersFiltered = badUsers.Where(u => !blackListedUserIds.Contains(u.Id))
