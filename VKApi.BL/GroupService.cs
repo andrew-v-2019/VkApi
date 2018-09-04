@@ -36,11 +36,12 @@ namespace VKApi.BL
                     var param = new WallGetParams()
                     {
                         OwnerId = -group.Id,
-                        Filter = WallFilter.All,
+                        Filter = WallFilter.Owner,
                         Count = step,
-                        Offset = offset
+                        Offset = offset,
+                        
                     };
-                    var getResult = api.Wall.Get(param);
+                    var getResult = api.Wall.Get(param,false);
                     var postsChunk = getResult.WallPosts.Select(p => p).ToList();
                     posts.AddRange(postsChunk);
                     offset = offset + step;
