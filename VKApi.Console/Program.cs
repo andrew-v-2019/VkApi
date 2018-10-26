@@ -37,55 +37,33 @@ namespace VKApi.Console
             _apiFactory = ServiceInjector.Retrieve<IVkApiFactory>();
         }
 
-        private static void Main(string[] args)
+        private static void Main()
         {
             ConfigureServices();
             InjectServices();
-
-            const string searchPhrase = "знакомства красноярск";
-
-
-            var groups = _groupService.GetGroupsBySearchPhrase(searchPhrase);
-
-            var closedGroups = groups.GetClosedGroups();
-            var openGroups = groups.GetOpenGroups();
             System.Console.Clear();
 
             var users = new List<User>();
-            //foreach (var openGroup in openGroups)
-            //{
-            //    var posts = _groupService.GetPosts(openGroup.Id.ToString());
-            //    var likedPosts = posts.Where(p => p.Likes.Count > 0).Select(p => p).ToList();
-            //    var ownerId = posts.First().OwnerId.Value;
-            //    var postIds = likedPosts.Select(x => x.Id.Value).ToList();
-            //    var likerIds = _likesService.GetUsersWhoLiked(ownerId, postIds, LikeObjectType.Post);
-            //    System.Threading.Thread.Sleep(TimeSpan.FromSeconds(1));
-            //    var chunk = _userService.GetUsersByIds(likerIds);
-            //    users.AddRange(chunk);
-            //}
-            var groupName = "poisk_krsk";
-            var posts = _groupService.GetPosts(groupName, 1000);
+            const string groupName = "poisk_krsk";
+            const ulong postsTotalCount = 300;//1000;
+
+
+            var posts = _groupService.GetPosts(groupName, postsTotalCount);
             var likedPosts = posts.Where(p => p.Likes.Count > 0).Select(p => p).ToList();
-            var ownerId = posts.First().OwnerId.Value;
-            var postIds = likedPosts.Select(x => x.Id.Value).ToList();
+            var id = posts.First()?.OwnerId;
+
+            if (id == null)
+            {
+                return;
+            }
+
+            var ownerId = id.Value;
+            var postIds = likedPosts.Where(x => x.Id.HasValue).Select(x => x.Id.Value).ToList();
             var likerIds = _likesService.GetUsersWhoLiked(ownerId, postIds, LikeObjectType.Post);
 
             var chunk = _userService.GetUsersByIds(likerIds);
             users.AddRange(chunk);
 
-            //foreach (var cloedGroup in closedGroups)
-            //{
-            //    try
-            //    {
-            //        var closedMembers = _groupService.GetGroupMembers(cloedGroup.Id.ToString());
-            //        users.AddRange(closedMembers);
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        System.Console.WriteLine(e.Message);
-            //    }
-
-            //}
 
             System.Console.Clear();
             using (var api = _apiFactory.CreateVkApi())
@@ -95,10 +73,11 @@ namespace VKApi.Console
                                             .Select(x => x)
                                             .ToList();
                 var counter = 0;
-                var count = filteredUsers.Count-1;
+                var count = filteredUsers.Count - 1;
+                System.Console.Clear();
                 do
                 {
-                    var wait = (counter % 2 > 0) ? 1 : 2;
+                    var wait = (counter % 2 > 0) ? 10 : 15;
                     var user = filteredUsers[counter];
                     var photoId = user.GetPhotoId();
                     try
@@ -110,19 +89,20 @@ namespace VKApi.Console
                         System.Console.WriteLine(message);
                         if (result)
                         {
-                            
+
                             System.Threading.Thread.Sleep(TimeSpan.FromMinutes(wait));
-                            System.Console.Clear();
+                            
                         }
                     }
                     catch (Exception e)
                     {
                         System.Console.WriteLine("Exception:" + e.Message);
-                        System.Threading.Thread.Sleep(TimeSpan.FromMinutes(wait));
-                        System.Console.Clear();
+                        System.Threading.Thread.Sleep(TimeSpan.FromMinutes(20));
                     }
                 } while (counter < count);
             }
+
+            System.Console.ReadLine();
         }
 
 
@@ -138,7 +118,7 @@ namespace VKApi.Console
                 return false;
             }
 
-            if (!user.FromCity("красноярск"))
+            if (!user.FromCity("krasnoyarsk"))
             {
                 return false;
             }

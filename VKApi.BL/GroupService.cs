@@ -24,7 +24,11 @@ namespace VKApi.BL
 
         public List<Post> GetPosts(string groupName, ulong? count = null)
         {
-            const ulong step = 100;
+            ulong step = 100;
+            if (count < step)
+            {
+                step = count.Value;
+            }
             ulong offset = 0;
             using (var api = _apiFactory.CreateVkApi())
             {
