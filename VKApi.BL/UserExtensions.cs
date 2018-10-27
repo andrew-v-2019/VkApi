@@ -1,22 +1,41 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VkNet.Enums;
+using VkNet.Enums.SafetyEnums;
 using VkNet.Model;
+using VKApi.BL.Models;
 
 namespace VKApi.BL
 {
     public static class UserExtensions
     {
-        public static bool IsAgeBetween(this User user, int min, int max)
+        public static bool IsAgeBetween(this UserExtended user, int min, int max)
         {
-            if (user.BirthdayVisibility == BirthdayVisibility.Invisible ||
-                user.BirthdayVisibility == BirthdayVisibility.OnlyDayAndMonth)
+            if (!AgeVisible(user))
             {
                 return true;
+            }
+
+            try
+            {
+                var years = GetAge(user);
+                if (years.HasValue)
+                {
+                    return years >= min && years <= max;
+                }
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public static int? GetAge(this UserExtended user)
+        {
+            if (!AgeVisible(user))
+            {
+                return null;
             }
             var birthDateString = user.BirthDate.Split('.');
             var d = Convert.ToInt32(birthDateString[0]);
@@ -28,28 +47,32 @@ namespace VKApi.BL
                 var birthDateYear = birthDate.Year;
                 var now = DateTime.Now.Year;
                 var years = now - birthDateYear;
-                return years >= min && years <= max;
+                return years;
             }
             catch (Exception)
             {
-                return false;
+                return null;
             }
         }
 
-        public static bool HasBeenOfflineMoreThanDays(this User user, int days)
+        public static bool AgeVisible(this UserExtended user)
         {
-            if (user.LastSeen?.Time == null)
+            if (user.BirthdayVisibility == BirthdayVisibility.Invisible ||
+                user.BirthdayVisibility == BirthdayVisibility.OnlyDayAndMonth)
             {
                 return false;
             }
-            var lastVisitDate = user.LastSeen.Time.Value;
+            return !string.IsNullOrWhiteSpace(user.BirthDate);
+        }
 
+        public static bool HasBeenOfflineMoreThanDays(this UserExtended user, int days)
+        {
+            var lastVisitDate = user.LastActivityDate;
             var daysWithoutVist = Math.Abs((DateTime.Now - lastVisitDate).Days);
-
             return daysWithoutVist > days;
         }
 
-        public static bool FromCity(this User user, string cityName)
+        public static bool FromCity(this UserExtended user, string cityName)
         {
             var cityLow = cityName.Trim().ToLower();
             return user.City != null && user.City.Title.ToLower().Contains(cityLow);
@@ -60,11 +83,9 @@ namespace VKApi.BL
             return user.Blacklisted || user.BlacklistedByMe;
         }
 
-        public static IOrderedEnumerable<User> OrderByLsatActivityDateDesc(this List<User> users)
+        public static UserExtended ToExtendedModel(this User u)
         {
-            var usersOrdered = users.OrderByDescending(u => u.Online)
-                .ThenByDescending(u => u.LastSeen != null ? u.LastSeen.Time : new DateTime(1970, 1, 1));
-            return usersOrdered;
+            return new UserExtended(u);
         }
 
         public static long GetPhotoId(this User user)
@@ -83,5 +104,29 @@ namespace VKApi.BL
             return user.Relation != RelationType.Amorous && user.Relation != RelationType.CivilMarriage &&
                    user.Relation != RelationType.HasFriend && user.Relation != RelationType.Married;
         }
+
+
+        public static DateTime GetLastActivityDate(this User user)
+        {
+            DateTime lastActivityDate;
+            if (user.Online == true)
+            {
+                lastActivityDate = DateTime.Now;
+            }
+            else
+            {
+                lastActivityDate = user.LastSeen?.Time != null
+                    ? user.LastSeen.Time.GetValueOrDefault()
+                    : new DateTime(1970, 1, 1);
+            }
+            return lastActivityDate;
+        }
+
+        public static bool HasChildrens(this User user)
+        {
+            return user.Relatives != null && user.Relatives.Any(x => x.Type == RelativeType.Child);
+        }
+
+
     }
 }

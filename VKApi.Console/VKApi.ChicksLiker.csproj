@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{125896FB-E046-420B-BED5-E6D988605D91}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>VKApi.Console</RootNamespace>
-    <AssemblyName>VKApi.Console</AssemblyName>
+    <RootNamespace>VKApi.ChicksLiker</RootNamespace>
+    <AssemblyName>VKApi.ChicksLiker</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -88,7 +88,6 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ServiceInjector.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

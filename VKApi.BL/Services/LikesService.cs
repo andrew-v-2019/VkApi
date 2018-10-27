@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using VkNet;
@@ -7,12 +6,11 @@ using VkNet.Enums.SafetyEnums;
 using VkNet.Model.RequestParams;
 using VKApi.BL.Interfaces;
 
-namespace VKApi.BL
+namespace VKApi.BL.Services
 {
     public class LikesService : ILikesService
     {
         private readonly IVkApiFactory _apiFactory;
-
 
         public LikesService(IVkApiFactory apiFactory)
         {
@@ -28,7 +26,6 @@ namespace VKApi.BL
                 {
                     var chunk = GetUsersWhoLiked(ownerId, itemId, type, api);
                     likerIds.AddRange(chunk);
-                    System.Threading.Thread.Sleep(TimeSpan.FromSeconds(1));
                 }
             }
             return likerIds.Distinct().ToList();
@@ -38,24 +35,21 @@ namespace VKApi.BL
         {
             uint? count = 1000;
 
-            var result = api.Likes.GetList(new LikesGetListParams()
+            var result = api.Likes.GetList(new LikesGetListParams
                 {
                     OwnerId = ownerId,
                     Count = count,
                     Type = type,
-                    ItemId = itemId,
+                    ItemId = itemId
                 })
                 .ToList();
+            System.Threading.Thread.Sleep(TimeSpan.FromSeconds(.10));
             return result;
         }
 
         public bool AddLike(long ownerId, long itemId, LikeObjectType type, VkApi api)
         {
-            var likers = GetUsersWhoLiked(ownerId, itemId, type, api);
-            if (likers.Contains(api.UserId.Value))
-            {
-                return false;
-            }
+           
             var param = new LikesAddParams()
             {
                 OwnerId = ownerId,

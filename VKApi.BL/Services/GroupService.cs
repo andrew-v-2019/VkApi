@@ -6,8 +6,9 @@ using VkNet.Enums.SafetyEnums;
 using VkNet.Model;
 using VkNet.Model.RequestParams;
 using VKApi.BL.Interfaces;
+using VKApi.BL.Models;
 
-namespace VKApi.BL
+namespace VKApi.BL.Services
 {
     public class GroupService : IGroupSerice
     {
@@ -42,8 +43,7 @@ namespace VKApi.BL
                         OwnerId = -group.Id,
                         Filter = WallFilter.Owner,
                         Count = step,
-                        Offset = offset,
-                        
+                        Offset = offset
                     };
                     var getResult = api.Wall.Get(param,false);
                     var postsChunk = getResult.WallPosts.Select(p => p).ToList();
@@ -73,7 +73,7 @@ namespace VKApi.BL
         }
 
 
-        public List<User> GetGroupMembers(string groupName, UsersFields fields = null, int? count = null)
+        public List<UserExtended> GetGroupMembers(string groupName, UsersFields fields = null, int? count = null)
         {
             if (fields == null)
             {
@@ -83,7 +83,7 @@ namespace VKApi.BL
             using (var api = _apiFactory.CreateVkApi())
             {
                 var count2 = count ?? GetGroupMembersCount(groupName, api);
-                var users = new List<User>();
+                var users = new List<UserExtended>();
                 for (var offset = 0; offset < count2; offset = offset + Step)
                 {
                     var usersChunk = GetGroupMembersOffset(offset, groupName, api, fields);
@@ -94,7 +94,7 @@ namespace VKApi.BL
             }
         }
 
-        private List<User> GetGroupMembersOffset(int offset, string groupName, VkApi api, UsersFields fields)
+        private List<UserExtended> GetGroupMembersOffset(int offset, string groupName, VkApi api, UsersFields fields)
         {
             var param = new GroupsGetMembersParams()
             {
@@ -103,11 +103,11 @@ namespace VKApi.BL
                 Sort = _getMemebersSort,
                 Fields = fields
             };
-            var usersChunk = api.Groups.GetMembers(param);
+            var usersChunk = api.Groups.GetMembers(param).Select(x=>x.ToExtendedModel());
             return usersChunk.ToList();
         }
 
-        private int GetGroupMembersCount(string groupName, VkApi api)
+        private static int GetGroupMembersCount(string groupName, VkApi api)
         {
             var res = GetByName(groupName, api);
             return res.MembersCount.GetValueOrDefault();

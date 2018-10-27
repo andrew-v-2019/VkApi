@@ -1,33 +1,22 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using VkNet;
 using VkNet.Enums;
 using VkNet.Enums.SafetyEnums;
-using VkNet.Model;
 using VKApi.BL;
 using VKApi.BL.Interfaces;
+using VKApi.BL.Models;
+using VKApi.BL.Unity;
 
-namespace VKApi.Console
+namespace VKApi.ChicksLiker
 {
-    class Program
+    public static class Program
     {
-        private static void ConfigureServices()
-        {
-            ServiceInjector.Register<IGroupSerice, GroupService>();
-            ServiceInjector.Register<IConfigurationProvider, ConfigurationProvider>();
-            ServiceInjector.Register<IVkApiFactory, VkApiFactory>();
-            ServiceInjector.Register<ILikesService, LikesService>();
-            ServiceInjector.Register<IUserService, UserService>();
-            ServiceInjector.Register<IPhotosService, PhotosService>();
-
-        }
-
         private static IGroupSerice _groupService;
         private static ILikesService _likesService;
         private static IUserService _userService;
         private static IVkApiFactory _apiFactory;
+        private static IPhotosService _photoService;
 
         private static void InjectServices()
         {
@@ -35,21 +24,26 @@ namespace VKApi.Console
             _likesService = ServiceInjector.Retrieve<ILikesService>();
             _userService = ServiceInjector.Retrieve<IUserService>();
             _apiFactory = ServiceInjector.Retrieve<IVkApiFactory>();
+            _photoService = ServiceInjector.Retrieve<IPhotosService>();
         }
+
+        private const string GroupName = "poisk_krsk";
+        private const ulong PostsCountToAnalyze = 1000;
+        private const string City = "krasnoyarsk";
+        private const int ProfilePhotosToLike = 2;
+
+        private const int minAge = 21;
+        private const int maxAge = 27;
 
         private static void Main()
         {
-            ConfigureServices();
+            ServiceInjector.ConfigureServices();
             InjectServices();
-            System.Console.Clear();
+            Console.Clear();
 
-            var users = new List<User>();
-            const string groupName = "poisk_krsk";
-            const ulong postsTotalCount = 300;//1000;
-
-
-            var posts = _groupService.GetPosts(groupName, postsTotalCount);
-            var likedPosts = posts.Where(p => p.Likes.Count > 0).Select(p => p).ToList();
+            var users = new List<UserExtended>();
+           
+            var posts = _groupService.GetPosts(GroupName, PostsCountToAnalyze);
             var id = posts.First()?.OwnerId;
 
             if (id == null)
@@ -58,57 +52,83 @@ namespace VKApi.Console
             }
 
             var ownerId = id.Value;
-            var postIds = likedPosts.Where(x => x.Id.HasValue).Select(x => x.Id.Value).ToList();
+            var postIds = posts.Where(x => x.Id.HasValue).Select(x => x.Id.Value).ToList();
             var likerIds = _likesService.GetUsersWhoLiked(ownerId, postIds, LikeObjectType.Post);
 
-            var chunk = _userService.GetUsersByIds(likerIds);
+            var chunk = _userService.GetUsersByIds(likerIds);           
             users.AddRange(chunk);
 
-
-            System.Console.Clear();
+            Console.Clear();
             using (var api = _apiFactory.CreateVkApi())
             {
-                var filteredUsers = users.OrderByLsatActivityDateDesc()
-                                            .Where(u => ShouldLike(u, api, _userService))
-                                            .Select(x => x)
-                                            .ToList();
+                var filteredUsers = users
+                    .Where(ShouldLike)
+                    .Select(x => x)
+                    .OrderBy(x => x.HasChildrens)
+                    .ThenBy(u => u.Age ?? 99)
+                    .ThenByDescending(x => x.LastActivityDate)
+                    .ToList();
+
                 var counter = 0;
                 var count = filteredUsers.Count - 1;
-                System.Console.Clear();
+                Console.Clear();
                 do
-                {
-                    var wait = (counter % 2 > 0) ? 10 : 15;
+                {                                        
                     var user = filteredUsers[counter];
+
+                    var wait = (counter % 2 > 0) ? 5 : 6;
+                    if (user.Age % 2 > 0)
+                    {
+                        wait = (counter % 2 > 0) ? 4 : 7;
+                    }
+
                     var photoId = user.GetPhotoId();
+                    var profilePhotos = _photoService.GetProfilePhotos(user.Id, ProfilePhotosToLike);
                     try
                     {
-                        var result = _likesService.AddLike(user.Id, photoId, LikeObjectType.Photo, api);
+                        var result = false;
+
+                        foreach (var profilePhoto in profilePhotos)
+                        {
+                            if (profilePhoto.Likes.UserLikes)
+                            {
+                                continue;
+                            }
+
+                            if (profilePhoto.Id.HasValue)
+                            {
+                                result = _likesService.AddLike(user.Id, profilePhoto.Id.Value, LikeObjectType.Photo,
+                                    api);
+                            }
+                        }
+
                         counter++;
+
                         var message =
-                            $"vk.com/{user.Domain} - {(result ? "liked" : "passed")}. Time {DateTime.Now}. {counter} out of {count}";
-                        System.Console.WriteLine(message);
+                            $"vk.com/{user.Domain} - {(result ? "liked" : "passed")}.{Environment.NewLine}Last activity date: {user.LastActivityDate}, age: {user.Age}, has child: {user.HasChildrens.ToString().ToLower()}.{Environment.NewLine}Time {DateTime.Now}. {counter} out of {count}";
+
+                        Console.WriteLine(message);
+
                         if (result)
                         {
-
                             System.Threading.Thread.Sleep(TimeSpan.FromMinutes(wait));
-                            
                         }
                     }
                     catch (Exception e)
                     {
-                        System.Console.WriteLine("Exception:" + e.Message);
+                        Console.WriteLine("Exception:" + e.Message);
                         System.Threading.Thread.Sleep(TimeSpan.FromMinutes(20));
                     }
+
                 } while (counter < count);
             }
 
-            System.Console.ReadLine();
+            Console.ReadLine();
         }
 
-
-        private static bool ShouldLike(User user, VkApi api, IUserService userService)
+        private static bool ShouldLike(UserExtended user)
         {
-            if (!user.IsAgeBetween(18, 35))
+            if (!user.IsAgeBetween(minAge, maxAge))
             {
                 return false;
             }
@@ -118,7 +138,7 @@ namespace VKApi.Console
                 return false;
             }
 
-            if (!user.FromCity("krasnoyarsk"))
+            if (!user.FromCity(City))
             {
                 return false;
             }
@@ -143,8 +163,7 @@ namespace VKApi.Console
             {
                 return false;
             }
-            System.Threading.Thread.Sleep(TimeSpan.FromSeconds(1));
-            return !userService.HaveCommonFriends(user.Id, api.UserId.Value, api);
+            return user.CommonCount == 0 || !user.CommonCount.HasValue;
         }
     }
 }

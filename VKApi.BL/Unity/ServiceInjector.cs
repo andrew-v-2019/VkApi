@@ -1,7 +1,9 @@
 ﻿using Unity;
 using Unity.Lifetime;
+using VKApi.BL.Interfaces;
+using VKApi.BL.Services;
 
-namespace VKApi.Console.Blacklister
+namespace VKApi.BL.Unity
 {
     public static class ServiceInjector
     {
@@ -17,6 +19,16 @@ namespace VKApi.Console.Blacklister
         public static T Retrieve<T>()
         {
             return UnityContainer.Resolve<T>();
+        }
+
+        public static void ConfigureServices()
+        {
+            Register<IGroupSerice, GroupService>();
+            Register<IConfigurationProvider, ConfigurationProvider>();
+            Register<IVkApiFactory, VkApiFactory>();
+            Register<ILikesService, LikesService>();
+            Register<IUserService, UserService>();
+            Register<IPhotosService, PhotosService>();
         }
     }
 }

@@ -2,13 +2,13 @@
 using System.Linq;
 using VkNet;
 using VkNet.Enums.Filters;
-using VkNet.Model;
 using VkNet.Model.RequestParams;
 using VKApi.BL.Interfaces;
+using VKApi.BL.Models;
 
-namespace VKApi.BL
+namespace VKApi.BL.Services
 {
-    public class UserService:IUserService
+    public class UserService : IUserService
     {
         private readonly IVkApiFactory _apiFactory;
 
@@ -18,28 +18,26 @@ namespace VKApi.BL
             _apiFactory = apiFactory;
         }
 
-        public bool BanUser(User userToBan, VkApi api)
+        public bool BanUser(UserExtended userToBan, VkApi api)
         {
             var r = api.Account.BanUser(userToBan.Id);
             return r;
         }
 
-      
-
-        public void BanUsers(List<User> usersToBan)
+        public void BanUsers(List<UserExtended> usersToBan)
         {
             using (var api = _apiFactory.CreateVkApi())
             {
-                foreach (User u in usersToBan)
+                foreach (var u in usersToBan)
                 {
                     BanUser(u, api);
                 }
             }
         }
 
-        public List<User> GetUsersByIds(List<long> userIds)
+        public List<UserExtended> GetUsersByIds(List<long> userIds)
         {
-            var users = new List<User>();
+            var users = new List<UserExtended>();
             const int step = 100;
             using (var api = _apiFactory.CreateVkApi())
             {
@@ -47,7 +45,7 @@ namespace VKApi.BL
                 for (var offset = 0; offset <= count; offset = offset + step)
                 {
                     var idsChunk = userIds.Skip(offset).Take(step);
-                    var chunk = api.Users.Get(idsChunk,ProfileFields.All);
+                    var chunk = api.Users.Get(idsChunk, ProfileFields.All).Select(x => x.ToExtendedModel());
                     users.AddRange(chunk);
                 }
             }
@@ -56,15 +54,15 @@ namespace VKApi.BL
 
         public List<long> GetBannedIds()
         {
-            var users = new List<User>();
+            var users = new List<UserExtended>();
             const int step = 200;
             var offset = 0;
-            var chunkCount = 0;
             using (var api = _apiFactory.CreateVkApi())
             {
+                int chunkCount;
                 do
                 {
-                    var chunk = api.Account.GetBanned(offset, step);
+                    var chunk = api.Account.GetBanned(offset, step).Select(x => x.ToExtendedModel()).ToList();
                     users.AddRange(chunk);
                     offset = offset + step;
                     chunkCount = chunk.Count;
@@ -74,14 +72,12 @@ namespace VKApi.BL
             return ids;
         }
 
-
         public bool HaveCommonFriends(long targetUserId, long sourderUserId, VkApi api)
         {
-            var commonFriendsParams = new FriendsGetMutualParams { TargetUid = targetUserId, SourceUid = sourderUserId };
+            var commonFriendsParams = new FriendsGetMutualParams {TargetUid = targetUserId, SourceUid = sourderUserId};
             var commonFriends =
                 api.Friends.GetMutual(commonFriendsParams);
             return commonFriends.Any();
         }
-
     }
 }

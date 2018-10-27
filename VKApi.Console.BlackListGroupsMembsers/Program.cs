@@ -2,22 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using VkNet.Model;
 using VKApi.BL;
 using VKApi.BL.Interfaces;
+using VKApi.BL.Models;
+using VKApi.BL.Services;
+using VKApi.BL.Unity;
 
 namespace VKApi.Console.Blacklister
 {
     internal static class Program
     {
-        private static void ConfigureServices()
-        {
-            ServiceInjector.Register<IGroupSerice, GroupService>();
-            ServiceInjector.Register<IConfigurationProvider, ConfigurationProvider>();
-            ServiceInjector.Register<IVkApiFactory, VkApiFactory>();
-            ServiceInjector.Register<IUserService, UserService>();
-        }
-
         private static IVkApiFactory _apiFactory;
 
         private static IConfigurationProvider _configurationProvider;
@@ -65,9 +59,9 @@ namespace VKApi.Console.Blacklister
             _groupSearchCount = 1000;
         }
 
-        private static void Main(string[] args)
+        private static void Main()
         {
-            ConfigureServices();
+            ServiceInjector.ConfigureServices();
 
             _configurationProvider = ServiceInjector.Retrieve<IConfigurationProvider>();
 
@@ -85,7 +79,7 @@ namespace VKApi.Console.Blacklister
         }
         
         
-        private static void BlackListUserList(List<User> badUsers)
+        private static void BlackListUserList(List<UserExtended> badUsers)
         {
             var totalUsersList = PrepareUserList(badUsers);
             var count = totalUsersList.Count;
@@ -137,10 +131,10 @@ namespace VKApi.Console.Blacklister
         }
 
 
-        private static List<User> GetGroupsMembersByPhrase()
+        private static List<UserExtended> GetGroupsMembersByPhrase()
         {
             var groups = _groupSerice.GetGroupsBySearchPhrase(_phrase, _groupSearchCount);
-            var badUsers = new List<User>();
+            var badUsers = new List<UserExtended>();
 
             foreach (var g in groups)
             {
@@ -152,7 +146,7 @@ namespace VKApi.Console.Blacklister
         }
 
 
-        private static List<User> PrepareUserList(List<User> badUsers)
+        private static List<UserExtended> PrepareUserList(List<UserExtended> badUsers)
         {
             var blackListedUserIds = _userService.GetBannedIds().ToList().Distinct();
             System.Console.Clear();
@@ -160,8 +154,7 @@ namespace VKApi.Console.Blacklister
             var badUsersFiltered = badUsers.Where(u => !blackListedUserIds.Contains(u.Id))
                 .Where(u => !_idsToExclude.Contains(u.Id)).ToList();
 
-            var badUsersOrdered = badUsersFiltered
-                .OrderByLsatActivityDateDesc();
+            var badUsersOrdered = badUsersFiltered.OrderByDescending(x => x.LastActivityDate);
 
             badUsersOrdered = badUsersOrdered.ThenBy(u => u.IsDeactivated)
                 .ThenBy(u => u.FirstName.Contains(_deletedUserText));

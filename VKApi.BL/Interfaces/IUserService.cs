@@ -1,16 +1,16 @@
 ﻿
 using System.Collections.Generic;
 using VkNet;
-using VkNet.Model;
+using VKApi.BL.Models;
 
 namespace VKApi.BL.Interfaces
 {
     public interface IUserService
     {
-        List<User> GetUsersByIds(List<long> userIds);
+        List<UserExtended> GetUsersByIds(List<long> userIds);
         bool HaveCommonFriends(long targetUserId, long sourderUserId, VkApi api);
-        bool BanUser(User userToBan, VkApi api);
-        void BanUsers(List<User> usersToBan);
+        bool BanUser(UserExtended userToBan, VkApi api);
+        void BanUsers(List<UserExtended> usersToBan);
         List<long> GetBannedIds();
 
     }
