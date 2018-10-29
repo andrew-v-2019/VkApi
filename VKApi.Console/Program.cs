@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using VkNet.Enums;
+using VkNet.Enums.Filters;
 using VkNet.Enums.SafetyEnums;
 using VKApi.BL;
 using VKApi.BL.Interfaces;
@@ -27,13 +28,42 @@ namespace VKApi.ChicksLiker
             _photoService = ServiceInjector.Retrieve<IPhotosService>();
         }
 
-        private const string GroupName = "poisk_krsk";
+        private const string GroupName = "poisk_krsk";//"poisk_krsk";
         private const ulong PostsCountToAnalyze = 1000;
         private const string City = "krasnoyarsk";
         private const int ProfilePhotosToLike = 2;
 
-        private const int minAge = 21;
-        private const int maxAge = 27;
+        private const int MinAge = 21;
+        private const int MaxAge = 27;
+
+        private const Strategy Strategy = ChicksLiker.Strategy.PostsLikers;
+
+
+        private static List<UserExtended> GetUserIdsByStrategy()
+        {
+            switch (Strategy)
+            {
+                case Strategy.PostsLikers:
+                    var posts = _groupService.GetPosts(GroupName, PostsCountToAnalyze);
+                    var id = posts.First()?.OwnerId;
+
+                    if (id == null)
+                    {
+                        return new List<UserExtended>();
+                    }
+
+                    var ownerId = id.Value;
+                    var postIds = posts.Where(x => x.Id.HasValue).Select(x => x.Id.Value).ToList();
+                    var likerIds = _likesService.GetUsersWhoLiked(ownerId, postIds, LikeObjectType.Post);
+                    var chunk = _userService.GetUsersByIds(likerIds);
+                    return chunk;
+                case Strategy.GroupMembers:
+                    var group = _groupService.GetByName(GroupName);
+                    var members = _groupService.GetGroupMembers(group.Id.ToString(), UsersFields.All);
+                    return members;
+            }
+            return new List<UserExtended>();
+        }
 
         private static void Main()
         {
@@ -41,22 +71,7 @@ namespace VKApi.ChicksLiker
             InjectServices();
             Console.Clear();
 
-            var users = new List<UserExtended>();
-           
-            var posts = _groupService.GetPosts(GroupName, PostsCountToAnalyze);
-            var id = posts.First()?.OwnerId;
-
-            if (id == null)
-            {
-                return;
-            }
-
-            var ownerId = id.Value;
-            var postIds = posts.Where(x => x.Id.HasValue).Select(x => x.Id.Value).ToList();
-            var likerIds = _likesService.GetUsersWhoLiked(ownerId, postIds, LikeObjectType.Post);
-
-            var chunk = _userService.GetUsersByIds(likerIds);           
-            users.AddRange(chunk);
+            var users = GetUserIdsByStrategy();          
 
             Console.Clear();
             using (var api = _apiFactory.CreateVkApi())
@@ -111,6 +126,7 @@ namespace VKApi.ChicksLiker
 
                         if (result)
                         {
+                            api.Account.SetOffline();
                             System.Threading.Thread.Sleep(TimeSpan.FromMinutes(wait));
                         }
                     }
@@ -128,7 +144,7 @@ namespace VKApi.ChicksLiker
 
         private static bool ShouldLike(UserExtended user)
         {
-            if (!user.IsAgeBetween(minAge, maxAge))
+            if (!user.IsAgeBetween(MinAge, MaxAge))
             {
                 return false;
             }

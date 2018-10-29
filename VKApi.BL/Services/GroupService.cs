@@ -103,8 +103,9 @@ namespace VKApi.BL.Services
                 Sort = _getMemebersSort,
                 Fields = fields
             };
-            var usersChunk = api.Groups.GetMembers(param).Select(x=>x.ToExtendedModel());
-            return usersChunk.ToList();
+            var usersChunk = api.Groups.GetMembers(param);
+            var model= usersChunk.Select(x=>x.ToExtendedModel()).ToList();
+            return model;
         }
 
         private static int GetGroupMembersCount(string groupName, VkApi api)
@@ -118,6 +119,14 @@ namespace VKApi.BL.Services
             var groupId = new List<string> {groupName};
             var res = api.Groups.GetById(groupId, groupName, GroupsFields.MembersCount);
             return res.FirstOrDefault();
+        }
+
+        public Group GetByName(string groupName)
+        {
+            using (var api = _apiFactory.CreateVkApi())
+            {
+              return  GetByName(groupName, api);
+            }
         }
     }
 }

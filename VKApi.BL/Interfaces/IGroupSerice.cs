@@ -10,5 +10,6 @@ namespace VKApi.BL.Interfaces
         List<UserExtended> GetGroupMembers(string groupName, UsersFields fields = null, int? count = null);
         List<Post> GetPosts(string groupName, ulong? count = null);
         List<Group> GetGroupsBySearchPhrase(string searchPhrase, int count = 1000);
+        Group GetByName(string groupName);
     }
 }
