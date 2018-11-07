@@ -93,6 +93,7 @@ namespace VKApi.Console.Blacklister
                     string message;
                     try
                     {
+                        api.Account.SetOffline();
                         var r = _userService.BanUser(u, api);
                         var domain = $"vk.com/{u.Domain}";
                         message =

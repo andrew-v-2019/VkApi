@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.26403.7
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VKApi.BL", "VKApi.BL\VKApi.BL.csproj", "{0CA4F9AC-AC26-4C74-9A94-C7CC6EBB46B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VKApi.ChicksLiker", "VKApi.Console\VKApi.ChicksLiker.csproj", "{125896FB-E046-420B-BED5-E6D988605D91}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VKApi.LikeClicker", "VKApi.Console\VKApi.LikeClicker.csproj", "{125896FB-E046-420B-BED5-E6D988605D91}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VKApi.Console.Blacklister", "VKApi.Console.BlackListGroupsMembsers\VKApi.Console.Blacklister.csproj", "{E547678A-22E8-437F-A1D4-264D113F164B}"
 EndProject

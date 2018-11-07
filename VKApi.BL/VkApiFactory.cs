@@ -1,6 +1,7 @@
 ﻿using System;
 using VkNet;
 using VkNet.Enums.Filters;
+using VkNet.Model;
 using VKApi.BL.Interfaces;
 
 namespace VKApi.BL

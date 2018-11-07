@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using VkNet.Enums;
 using VkNet.Enums.Filters;
 using VkNet.Enums.SafetyEnums;
@@ -28,12 +29,12 @@ namespace VKApi.ChicksLiker
             _photoService = ServiceInjector.Retrieve<IPhotosService>();
         }
 
-        private const string GroupName = "poisk_krsk";//"poisk_krsk";
+        private const string GroupName = "poisk_krsk";
         private const ulong PostsCountToAnalyze = 1000;
         private const string City = "krasnoyarsk";
         private const int ProfilePhotosToLike = 2;
 
-        private const int MinAge = 21;
+        private const int MinAge = 17;
         private const int MaxAge = 27;
 
         private const Strategy Strategy = ChicksLiker.Strategy.PostsLikers;
@@ -65,11 +66,41 @@ namespace VKApi.ChicksLiker
             return new List<UserExtended>();
         }
 
+        private static void CheckUsers()
+        {
+            using (var api = _apiFactory.CreateVkApi())
+            {
+
+                var idsChunk = new List<long> {492710644};
+               
+                ProfileFields p = new ProfileFields();
+                var props = p.GetType().GetProperties();
+
+                //foreach (var profileField in pfList)
+                //{
+                //    try
+                //    {
+                //        var u = api.Users.Get(idsChunk, profileField).Select(x => x.ToExtendedModel());
+                //    }
+                //    catch (Exception e)
+                //    {
+                //        Console.WriteLine(e);
+                //        throw;
+                //    }
+
+                //}
+
+            }
+        }
+
+
         private static void Main()
         {
             ServiceInjector.ConfigureServices();
             InjectServices();
             Console.Clear();
+
+           // CheckUsers();
 
             var users = GetUserIdsByStrategy();          
 
@@ -91,16 +122,15 @@ namespace VKApi.ChicksLiker
                 {                                        
                     var user = filteredUsers[counter];
 
-                    var wait = (counter % 2 > 0) ? 5 : 6;
+                    var wait = (counter % 2 > 0) ? 3 : 4;
                     if (user.Age % 2 > 0)
                     {
-                        wait = (counter % 2 > 0) ? 4 : 7;
+                        wait = (counter % 2 > 0) ? 2 : new Random().Next(1, 5);
                     }
-
-                    var photoId = user.GetPhotoId();
-                    var profilePhotos = _photoService.GetProfilePhotos(user.Id, ProfilePhotosToLike);
+                   
                     try
                     {
+                        var profilePhotos = _photoService.GetProfilePhotos(user.Id, ProfilePhotosToLike);
                         var result = false;
 
                         foreach (var profilePhoto in profilePhotos)
@@ -133,7 +163,7 @@ namespace VKApi.ChicksLiker
                     catch (Exception e)
                     {
                         Console.WriteLine("Exception:" + e.Message);
-                        System.Threading.Thread.Sleep(TimeSpan.FromMinutes(20));
+                        System.Threading.Thread.Sleep(TimeSpan.FromMinutes(5));
                     }
 
                 } while (counter < count);

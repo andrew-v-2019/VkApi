@@ -45,7 +45,7 @@ namespace VKApi.BL.Services
                         Count = step,
                         Offset = offset
                     };
-                    var getResult = api.Wall.Get(param,false);
+                    var getResult = api.Wall.Get(param);
                     var postsChunk = getResult.WallPosts.Select(p => p).ToList();
                     posts.AddRange(postsChunk);
                     offset = offset + step;
