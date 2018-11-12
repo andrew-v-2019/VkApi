@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using VkNet;
 using VkNet.Enums.Filters;
@@ -30,7 +31,7 @@ namespace VKApi.BL.Services
             {
                 step = count.Value;
             }
-            ulong offset = 0;
+            ulong offset = 1;
             using (var api = _apiFactory.CreateVkApi())
             {
                 var group = GetByName(groupName, api);
@@ -43,7 +44,9 @@ namespace VKApi.BL.Services
                         OwnerId = -group.Id,
                         Filter = WallFilter.Owner,
                         Count = step,
-                        Offset = offset
+                        Offset = offset,
+                        
+                        
                     };
                     var getResult = api.Wall.Get(param);
                     var postsChunk = getResult.WallPosts.Select(p => p).ToList();
@@ -51,6 +54,8 @@ namespace VKApi.BL.Services
                     offset = offset + step;
                     param.Offset = offset;
                     totalCount = getResult.TotalCount;
+                    Console.Clear();
+                    Console.WriteLine($"total posts count {posts.Count}");
                 } while (!count.HasValue ? offset < totalCount : offset < count.Value);
 
                 var orderredPosts = posts.Where(p => p.Likes != null && p.Likes.Count > 0)

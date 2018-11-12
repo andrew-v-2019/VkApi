@@ -26,6 +26,8 @@ namespace VKApi.BL.Services
                 {
                     var chunk = GetUsersWhoLiked(ownerId, itemId, type, api);
                     likerIds.AddRange(chunk);
+                    Console.Clear();
+                    Console.WriteLine($"user ids count: {likerIds.Count}");
                 }
             }
             return likerIds.Distinct().ToList();

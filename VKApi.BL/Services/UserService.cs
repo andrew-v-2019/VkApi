@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using VkNet;
 using VkNet.Enums.Filters;
@@ -47,6 +48,8 @@ namespace VKApi.BL.Services
                     var idsChunk = userIds.Skip(offset).Take(step);
                     var chunk = api.Users.Get(idsChunk, ProfileFields.All).Select(x => x.ToExtendedModel());
                     users.AddRange(chunk);
+                    Console.Clear();
+                    Console.WriteLine($"Users total count: {users.Count}");
                 }
             }
             return users;

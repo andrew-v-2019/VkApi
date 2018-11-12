@@ -56,6 +56,7 @@ namespace VKApi.ChicksLiker
                     var ownerId = id.Value;
                     var postIds = posts.Where(x => x.Id.HasValue).Select(x => x.Id.Value).ToList();
                     var likerIds = _likesService.GetUsersWhoLiked(ownerId, postIds, LikeObjectType.Post);
+                    Console.WriteLine("Get user by ids");
                     var chunk = _userService.GetUsersByIds(likerIds);
                     return chunk;
                 case Strategy.GroupMembers:
@@ -100,11 +101,10 @@ namespace VKApi.ChicksLiker
             InjectServices();
             Console.Clear();
 
-           // CheckUsers();
+            Console.WriteLine("Get user ids");
+            var users = GetUserIdsByStrategy();
+            Console.WriteLine($"Ids count is {users.Count}");
 
-            var users = GetUserIdsByStrategy();          
-
-            Console.Clear();
             using (var api = _apiFactory.CreateVkApi())
             {
                 var filteredUsers = users
@@ -115,9 +115,10 @@ namespace VKApi.ChicksLiker
                     .ThenByDescending(x => x.LastActivityDate)
                     .ToList();
 
+                Console.WriteLine($"filtered users count is {filteredUsers.Count}");
+
                 var counter = 0;
                 var count = filteredUsers.Count - 1;
-                Console.Clear();
                 do
                 {                                        
                     var user = filteredUsers[counter];
