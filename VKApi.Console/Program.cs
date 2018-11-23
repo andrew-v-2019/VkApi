@@ -82,6 +82,7 @@ namespace VKApi.ChicksLiker
                 //    {
                 //        var u = api.Users.Get(idsChunk, profileField).Select(x => x.ToExtendedModel());
                 //    }
+
                 //    catch (Exception e)
                 //    {
                 //        Console.WriteLine(e);
