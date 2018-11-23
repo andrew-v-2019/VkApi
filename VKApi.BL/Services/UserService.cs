@@ -19,6 +19,21 @@ namespace VKApi.BL.Services
             _apiFactory = apiFactory;
         }
 
+        public List<UserExtended> GetFriends(long userId)
+        {
+            using (var api = _apiFactory.CreateVkApi())
+            {
+                var param = new FriendsGetParams()
+                {
+                    UserId = userId,
+                    Fields = ProfileFields.All
+                };
+                var friends = api.Friends.Get(param);
+                var result = friends.Select(x => new UserExtended(x)).ToList();
+                return result;
+            }
+        }
+
         public bool BanUser(UserExtended userToBan, VkApi api)
         {
             var r = api.Account.BanUser(userToBan.Id);

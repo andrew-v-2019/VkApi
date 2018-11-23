@@ -19,8 +19,13 @@ namespace VKApi.BL
 
         public VkApi CreateVkApi()
         {
-            if (_api != null) return _api;
+            if (_api != null) 
+            {
+                return _api;
+            }
+
             _api = new VkApi();
+
             _api.Authorize(new ApiAuthParams
             {
                 ApplicationId =
@@ -29,6 +34,7 @@ namespace VKApi.BL
                 Password = _configurationProvider.GetConfig(nameof(ApiAuthParams.Password)),
                 Settings = Settings.All
             });
+
             return _api;
         }
     }

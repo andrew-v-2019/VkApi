@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using Unity.Interception.Utilities;
 using VkNet.Enums;
 using VkNet.Enums.SafetyEnums;
 using VkNet.Model;
@@ -76,6 +78,16 @@ namespace VKApi.BL
         {
             var cityLow = cityName.Trim().ToLower();
             return user.City != null && user.City.Title.ToLower().Contains(cityLow);
+        }
+
+        public static bool FromCity(this UserExtended user, string[] cities)
+        {
+            if (user.City == null)
+            {
+                return false;
+            }
+            var citiesLowered = cities.Select(c => c.Trim().ToLower()).ToList();
+            return citiesLowered.Contains(user.City.Title.Trim().ToLower());
         }
 
         public static bool BlackListed(this User user)

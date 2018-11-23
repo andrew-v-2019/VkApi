@@ -12,6 +12,7 @@ namespace VKApi.BL.Interfaces
         bool BanUser(UserExtended userToBan, VkApi api);
         void BanUsers(List<UserExtended> usersToBan);
         List<long> GetBannedIds();
+        List<UserExtended> GetFriends(long userId);
 
     }
 }
