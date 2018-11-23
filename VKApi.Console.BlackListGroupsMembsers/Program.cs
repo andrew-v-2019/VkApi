@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
+using VkNet.Enums.Filters;
 using VKApi.BL;
 using VKApi.BL.Interfaces;
 using VKApi.BL.Models;
@@ -86,7 +87,7 @@ namespace VKApi.Console.Blacklister
             var counter = 0;
             using (var api = _apiFactory.CreateVkApi())
             {
-                System.Console.Clear();
+                System.Console.WriteLine("Start BlackListUserList.");
                 foreach (var u in totalUsersList)
                 {
                     var sleep = TimeSpan.FromSeconds(_wait);
@@ -139,7 +140,10 @@ namespace VKApi.Console.Blacklister
 
             foreach (var g in groups)
             {
-                var groupBadUsers = _groupSerice.GetGroupMembers(g.Id.ToString()).ToList();
+                var f = GetUserFields();
+                System.Console.WriteLine($"Getting members for group {g.Id} (vk.com/club{g.Id})");
+                var groupBadUsers = _groupSerice.GetGroupMembers(g.Id.ToString(), f).ToList();
+                System.Console.WriteLine($"Got members for group {g.Id}, count is {groupBadUsers.Count}");
                 badUsers.AddRange(groupBadUsers);
             }
 
@@ -147,18 +151,28 @@ namespace VKApi.Console.Blacklister
         }
 
 
+        private static UsersFields GetUserFields()
+        {
+            var f = UsersFields.LastSeen | UsersFields.City | UsersFields.Domain;
+            return f;
+        }
+
         private static List<UserExtended> PrepareUserList(List<UserExtended> badUsers)
         {
-            var blackListedUserIds = _userService.GetBannedIds().ToList().Distinct();
-            System.Console.Clear();
+            System.Console.WriteLine("Preparing list...");
+            var blackListedUserIds = _userService.GetBannedIds().ToList().Distinct().ToList();
+
+            System.Console.WriteLine($"BlackListedUserIds count is {blackListedUserIds.Count}.");
 
             var badUsersFiltered = badUsers.Where(u => !blackListedUserIds.Contains(u.Id))
                 .Where(u => !_idsToExclude.Contains(u.Id)).ToList();
 
+            System.Console.WriteLine($"BadUsersFiltered count is {badUsersFiltered.Count}.");
+
             var badUsersOrdered = badUsersFiltered.OrderByDescending(x => x.LastActivityDate);
 
             badUsersOrdered = badUsersOrdered.ThenBy(u => u.IsDeactivated)
-                .ThenBy(u => u.FirstName.Contains(_deletedUserText));
+                .ThenBy(u => u.FirstName.Contains(_deletedUserText) && !string.IsNullOrWhiteSpace(u.FirstName));
 
             if (!string.IsNullOrWhiteSpace(_city))
             {
@@ -166,6 +180,8 @@ namespace VKApi.Console.Blacklister
             }
 
             var totalUsersList = badUsersOrdered.ToList();
+
+            System.Console.WriteLine($"TotalUsersList count is {totalUsersList.Count}.");
 
             if (!_reverseTotalList)
             {
