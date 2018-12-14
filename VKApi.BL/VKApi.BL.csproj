@@ -127,7 +127,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GroupExtensions.cs" />
+    <Compile Include="Extensions\GroupExtensions.cs" />
     <Compile Include="Models\UserExtended.cs" />
     <Compile Include="Services\PhotoService.cs" />
     <Compile Include="ConfigurationProvider.cs" />
@@ -141,7 +141,7 @@
     <Compile Include="Services\LikesService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Unity\ServiceInjector.cs" />
-    <Compile Include="UserExtensions.cs" />
+    <Compile Include="Extensions\UserExtensions.cs" />
     <Compile Include="Services\UserService.cs" />
     <Compile Include="VkApiFactory.cs" />
   </ItemGroup>
