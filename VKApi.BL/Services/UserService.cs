@@ -51,8 +51,12 @@ namespace VKApi.BL.Services
             }
         }
 
-        public List<UserExtended> GetUsersByIds(List<long> userIds)
+        public List<UserExtended> GetUsersByIds(List<long> userIds, ProfileFields profileFields =null)
         {
+            if (profileFields == null)
+            {
+                profileFields = ProfileFields.All;
+            }
             var users = new List<UserExtended>();
             const int step = 100;
             using (var api = _apiFactory.CreateVkApi())
@@ -61,8 +65,17 @@ namespace VKApi.BL.Services
                 for (var offset = 0; offset <= count; offset = offset + step)
                 {
                     var idsChunk = userIds.Skip(offset).Take(step);
-                    var chunk = api.Users.Get(idsChunk, ProfileFields.All).Select(x => x.ToExtendedModel());
-                    users.AddRange(chunk);
+                    try
+                    {
+                        var chunk = api.Users.Get(idsChunk, profileFields).Select(x => x.ToExtendedModel());
+                        users.AddRange(chunk);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        continue;
+                        
+                    }
                     Console.Clear();
                     Console.WriteLine($"Users total count: {users.Count}");
                 }
@@ -75,6 +88,7 @@ namespace VKApi.BL.Services
             var users = new List<UserExtended>();
             const int step = 200;
             var offset = 0;
+            Console.WriteLine("Getting user ids that already blacklisted...");
             using (var api = _apiFactory.CreateVkApi())
             {
                 int chunkCount;
@@ -84,9 +98,11 @@ namespace VKApi.BL.Services
                     users.AddRange(chunk);
                     offset = offset + step;
                     chunkCount = chunk.Count;
+                    Console.Write($"\rGot {users.Count} blackListed users...");
                 } while (chunkCount == step);
             }
             var ids = users.Select(u => u.Id).ToList();
+            Console.WriteLine();
             return ids;
         }
 

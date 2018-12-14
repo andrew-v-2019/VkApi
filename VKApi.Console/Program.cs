@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using VkNet.Enums;
 using VkNet.Enums.Filters;
@@ -28,15 +29,15 @@ namespace VKApi.ChicksLiker
             _photoService = ServiceInjector.Retrieve<IPhotosService>();
         }
 
-        private const string GroupName = "poshlye_krsk";// "vpispatrol";//"znakomstva_krasnoyarsk124";// "poisk_krsk";
+        private const string GroupName = "poisk_krsk";// "vpispatrol";//"znakomstva_krasnoyarsk124";// "poisk_krsk";
         private const ulong PostsCountToAnalyze = 1000;
-        private static readonly string[] Cities = {"krasnoyarsk", "divnogorsk"};
+        private static readonly string[] Cities = { "krasnoyarsk" };
         private const int ProfilePhotosToLike = 2;
 
-        private const int MinAge = 17;
-        private const int MaxAge = 30;
+        private const int MinAge = 20;
+        private const int MaxAge = 27;
 
-        private const Strategy Strategy = ChicksLiker.Strategy.GroupMembers;
+        private const Strategy Strategy = ChicksLiker.Strategy.PostsLikers;
 
 
         private static List<UserExtended> GetUserIdsByStrategy()
@@ -60,50 +61,26 @@ namespace VKApi.ChicksLiker
                     return chunk;
                 case Strategy.GroupMembers:
                     var group = _groupService.GetByName(GroupName);
-                    var members = _groupService.GetGroupMembers(group.Id.ToString(), UsersFields.All);
+                    var members = _groupService.GetGroupMembers(group.Id.ToString(), UsersFields.Domain);
+                    var fields = GetFields();
+                    members = _userService.GetUsersByIds(members.Select(x => x.Id).ToList(), fields);
                     return members;
-            }
-            return new List<UserExtended>();
-        }
-
-        private static void CheckUsers()
-        {
-            using (var api = _apiFactory.CreateVkApi())
-            {
-
-                var idsChunk = new List<long> {492710644};
-               
-                ProfileFields p = new ProfileFields();
-                var props = p.GetType().GetProperties();
-
-                //foreach (var profileField in pfList)
-                //{
-                //    try
-                //    {
-                //        var u = api.Users.Get(idsChunk, profileField).Select(x => x.ToExtendedModel());
-                //    }
-
-                //    catch (Exception e)
-                //    {
-                //        Console.WriteLine(e);
-                //        throw;
-                //    }
-
-                //}
-
             }
         }
 
 
         private static void Main()
         {
+            var ps = Process.GetCurrentProcess();
+            ps.PriorityClass = ProcessPriorityClass.RealTime;
+
             ServiceInjector.ConfigureServices();
             InjectServices();
             Console.Clear();
 
-            Console.WriteLine("Get user ids");
+            Console.WriteLine("Get user ids...");
             var users = GetUserIdsByStrategy();
-            Console.WriteLine($"Ids count is {users.Count}");
+            Console.WriteLine($"User ids count is {users.Count}.");
 
             using (var api = _apiFactory.CreateVkApi())
             {
@@ -115,7 +92,7 @@ namespace VKApi.ChicksLiker
                     .ThenByDescending(x => x.LastActivityDate)
                     .ToList();
 
-                Console.WriteLine($"filtered users count is {filteredUsers.Count}");
+                Console.WriteLine($"Filtered users count is {filteredUsers.Count}.");
 
                 var counter = 0;
                 var count = filteredUsers.Count - 1;
@@ -173,6 +150,14 @@ namespace VKApi.ChicksLiker
             Console.ReadLine();
         }
 
+        private static ProfileFields GetFields()
+        {
+            return ProfileFields.BirthDate | ProfileFields.LastSeen | ProfileFields.City | ProfileFields.Sex |
+                   ProfileFields.Blacklisted | ProfileFields.BlacklistedByMe | ProfileFields.IsFriend |
+                   ProfileFields.PhotoId | ProfileFields.CommonCount | ProfileFields.Relatives |
+                   ProfileFields.Relation | ProfileFields.Relatives | ProfileFields.Domain;
+        }
+
         private static bool ShouldLike(UserExtended user)
         {
             if (!user.IsAgeBetween(MinAge, MaxAge))
@@ -180,7 +165,7 @@ namespace VKApi.ChicksLiker
                 return false;
             }
 
-            if (user.HasBeenOfflineMoreThanDays(5))
+            if (user.HasBeenOfflineMoreThanDays(2))
             {
                 return false;
             }
@@ -190,11 +175,11 @@ namespace VKApi.ChicksLiker
                 return false;
             }
 
-
             if (user.Sex != Sex.Female)
             {
                 return false;
             }
+
             if (user.BlackListed())
             {
                 return false;
@@ -204,14 +189,17 @@ namespace VKApi.ChicksLiker
             {
                 return false;
             }
+
             if (!user.IsSingle())
             {
                 return false;
             }
+
             if (string.IsNullOrWhiteSpace(user.PhotoId))
             {
                 return false;
             }
+
             return user.CommonCount == 0 || !user.CommonCount.HasValue;
         }
     }

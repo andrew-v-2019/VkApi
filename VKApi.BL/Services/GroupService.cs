@@ -24,45 +24,49 @@ namespace VKApi.BL.Services
             _apiFactory = apiFactory;
         }
 
-        public List<Post> GetPosts(string groupName, ulong? count = null)
+        public List<Post> GetPostsByGroupId(long groupId, VkApi api, ulong? count = null)
         {
+            var posts = new List<Post>();
             ulong step = 100;
             if (count < step)
             {
                 step = count.Value;
             }
             ulong offset = 1;
+            ulong totalCount;
+            do
+            {
+                var param = new WallGetParams()
+                {
+                    OwnerId = -groupId,
+                    Filter = WallFilter.Owner,
+                    Count = step,
+                    Offset = offset
+                };
+                var getResult = api.Wall.Get(param);
+                var postsChunk = getResult.WallPosts.Select(p => p).ToList();
+                posts.AddRange(postsChunk);
+                offset = offset + step;
+                param.Offset = offset;
+                totalCount = getResult.TotalCount;
+                Console.Clear();
+                Console.WriteLine($"Total posts count {posts.Count}.");
+            } while (!count.HasValue ? offset < totalCount : offset < count.Value);
+
+            var orderredPosts = posts.Where(p => p.Likes != null && p.Likes.Count > 0)
+                .OrderByDescending(p => p.Date)
+                .ThenByDescending(p => p.Likes.Count)
+                .ToList();
+            return orderredPosts;
+        }
+
+        public List<Post> GetPosts(string groupName, ulong? count = null)
+        {
             using (var api = _apiFactory.CreateVkApi())
             {
                 var group = GetByName(groupName, api);
-                var posts = new List<Post>();
-                ulong totalCount;
-                do
-                {
-                    var param = new WallGetParams()
-                    {
-                        OwnerId = -group.Id,
-                        Filter = WallFilter.Owner,
-                        Count = step,
-                        Offset = offset,
-                        
-                        
-                    };
-                    var getResult = api.Wall.Get(param);
-                    var postsChunk = getResult.WallPosts.Select(p => p).ToList();
-                    posts.AddRange(postsChunk);
-                    offset = offset + step;
-                    param.Offset = offset;
-                    totalCount = getResult.TotalCount;
-                    Console.Clear();
-                    Console.WriteLine($"total posts count {posts.Count}");
-                } while (!count.HasValue ? offset < totalCount : offset < count.Value);
-
-                var orderredPosts = posts.Where(p => p.Likes != null && p.Likes.Count > 0)
-                    .OrderByDescending(p => p.Date)
-                    .ThenByDescending(p => p.Likes.Count)
-                    .ToList();
-                return orderredPosts;
+                var posts = GetPostsByGroupId(group.Id, api, count);
+                return posts;
             }
         }
 
@@ -91,10 +95,11 @@ namespace VKApi.BL.Services
                 var users = new List<UserExtended>();
                 for (var offset = 0; offset < count2; offset = offset + Step)
                 {
-                        var usersChunk = GetGroupMembersOffset(offset, groupName, api, fields);
-                        users.AddRange(usersChunk);
+                    var usersChunk = GetGroupMembersOffset(offset, groupName, api, fields);
+                    users.AddRange(usersChunk);
+                    Console.Write($"\rGot {users.Count} users...");
                 }
-
+                Console.WriteLine();
                 return users;
             }
         }
