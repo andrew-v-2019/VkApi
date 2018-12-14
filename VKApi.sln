@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VKApi.LikeClicker", "VKApi.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VKApi.Console.Blacklister", "VKApi.Console.BlackListGroupsMembsers\VKApi.Console.Blacklister.csproj", "{E547678A-22E8-437F-A1D4-264D113F164B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VKApi.Grabber", "VKApi.Grabber\VKApi.Grabber.csproj", "{002C1B05-A509-47DB-BE3B-D06C11E055F4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VkApi.WpfApp", "WpfApp1\VkApi.WpfApp.csproj", "{2A2A1016-76E4-4BD6-8B43-BF9CDD7FB56B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{E547678A-22E8-437F-A1D4-264D113F164B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E547678A-22E8-437F-A1D4-264D113F164B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E547678A-22E8-437F-A1D4-264D113F164B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{002C1B05-A509-47DB-BE3B-D06C11E055F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{002C1B05-A509-47DB-BE3B-D06C11E055F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{002C1B05-A509-47DB-BE3B-D06C11E055F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{002C1B05-A509-47DB-BE3B-D06C11E055F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A2A1016-76E4-4BD6-8B43-BF9CDD7FB56B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A2A1016-76E4-4BD6-8B43-BF9CDD7FB56B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A2A1016-76E4-4BD6-8B43-BF9CDD7FB56B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A2A1016-76E4-4BD6-8B43-BF9CDD7FB56B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

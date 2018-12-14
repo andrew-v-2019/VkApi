@@ -1,0 +1,65 @@
+﻿<Window x:Class="VkApi.WpfApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApp1"
+        mc:Ignorable="d"
+        Title="MainWindow"
+        x:Name="MainContainer"
+        Height="500"
+        MinHeight="500"
+        MaxHeight="500"
+        Width="500"
+        MinWidth="500"
+        MaxWidth="500">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="121*"/>
+            <ColumnDefinition Width="30*"/>
+            <ColumnDefinition Width="138*"/>
+            <ColumnDefinition Width="323*"/>
+        </Grid.ColumnDefinitions>
+        <TabControl HorizontalAlignment="Left" Background="LightCyan" 
+                    Height="470"
+                    MinHeight="470"
+                    MaxHeight="470"
+                    Width="500"
+                    MinWidth="500"
+                    x:Name="MainTabControl"
+                    MaxWidth="620" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="4" VerticalAlignment="Bottom">
+            <TabItem x:Name="LikeClikerTab">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Height="10" Width="10" Fill="Black" />
+                        <TextBlock Margin="3">LikeCliker</TextBlock>
+                    </StackPanel>
+                </TabItem.Header>
+                <TabItem.Content>
+                    <StackPanel RenderTransformOrigin="0.546,0.521" Margin="0,0,290,336">
+                        <ComboBox x:Name="AlgoritmComboBox"
+                            VerticalAlignment="Top" 
+                            Margin="7,7,7,7">
+                        </ComboBox >
+                        <ComboBox VerticalAlignment="Top"
+                                  IsEditable="True"
+                                  IsTextSearchEnabled="True"
+                                  x:Name="GroupNameComboBox"
+                                  Margin="7,7,7,7" Height="21" SelectionChanged="GroupNameComboBox_SelectionChanged" LostFocus="GroupNameComboBox_LostFocus">
+                            <ComboBoxItem Content="11111"/>
+                            <ComboBoxItem Content="222222"/>
+                        </ComboBox>
+                    </StackPanel>
+                </TabItem.Content>
+            </TabItem>
+            <TabItem x:Name="BlackListerTab">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <Rectangle Height="10" Width="10" Fill="Black" />
+                        <TextBlock Margin="3">BlackLister</TextBlock>
+                    </StackPanel>
+                </TabItem.Header>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

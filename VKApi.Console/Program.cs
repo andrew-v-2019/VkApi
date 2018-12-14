@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using VkNet.Enums;
 using VkNet.Enums.Filters;
 using VkNet.Enums.SafetyEnums;
@@ -29,12 +30,12 @@ namespace VKApi.ChicksLiker
             _photoService = ServiceInjector.Retrieve<IPhotosService>();
         }
 
-        private const string GroupName = "poisk_krsk";// "vpispatrol";//"znakomstva_krasnoyarsk124";// "poisk_krsk";
+        private const string GroupName = "znakomstva_krasnoyarsk124";// "vpispatrol";//"znakomstva_krasnoyarsk124";// "poisk_krsk";
         private const ulong PostsCountToAnalyze = 1000;
         private static readonly string[] Cities = { "krasnoyarsk" };
         private const int ProfilePhotosToLike = 2;
 
-        private const int MinAge = 20;
+        private const int MinAge = 18;
         private const int MaxAge = 27;
 
         private const Strategy Strategy = ChicksLiker.Strategy.PostsLikers;
@@ -174,7 +175,6 @@ namespace VKApi.ChicksLiker
             {
                 return false;
             }
-
             if (user.Sex != Sex.Female)
             {
                 return false;
