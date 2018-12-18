@@ -14,20 +14,14 @@
         MinWidth="500"
         MaxWidth="500">
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="121*"/>
-            <ColumnDefinition Width="30*"/>
-            <ColumnDefinition Width="138*"/>
-            <ColumnDefinition Width="323*"/>
-        </Grid.ColumnDefinitions>
         <TabControl HorizontalAlignment="Left" Background="LightCyan" 
                     Height="470"
                     MinHeight="470"
                     MaxHeight="470"
-                    Width="500"
+                    Width="263"
                     MinWidth="500"
                     x:Name="MainTabControl"
-                    MaxWidth="620" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="4" VerticalAlignment="Bottom">
+                    MaxWidth="620" RenderTransformOrigin="0.5,0.5" VerticalAlignment="Bottom" Margin="0,-1,0,0">
             <TabItem x:Name="LikeClikerTab">
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">
@@ -36,20 +30,34 @@
                     </StackPanel>
                 </TabItem.Header>
                 <TabItem.Content>
-                    <StackPanel RenderTransformOrigin="0.546,0.521" Margin="0,0,290,336">
+                    <Canvas  Margin="0,0,4,1">
+                        <Label VerticalAlignment="Top" Canvas.Left="8" Canvas.Top="12">
+                            Algorithm:
+                        </Label>
                         <ComboBox x:Name="AlgoritmComboBox"
-                            VerticalAlignment="Top" 
-                            Margin="7,7,7,7">
-                        </ComboBox >
+                            VerticalAlignment="Top" Canvas.Left="98" Canvas.Top="14" Width="164" RenderTransformOrigin="0.037,2.409"/>
+                        <Label VerticalAlignment="Top" Canvas.Top="49" Canvas.Left="7">
+                            Group Name:
+                        </Label>
                         <ComboBox VerticalAlignment="Top"
                                   IsEditable="True"
                                   IsTextSearchEnabled="True"
-                                  x:Name="GroupNameComboBox"
-                                  Margin="7,7,7,7" Height="21" SelectionChanged="GroupNameComboBox_SelectionChanged" LostFocus="GroupNameComboBox_LostFocus">
-                            <ComboBoxItem Content="11111"/>
-                            <ComboBoxItem Content="222222"/>
-                        </ComboBox>
-                    </StackPanel>
+                                  x:Name="GroupNameComboBox" Height="21"  LostFocus="GroupNameComboBox_LostFocus" RenderTransformOrigin="4.259,2.19" Canvas.Left="98" Width="164" Canvas.Top="54"/>
+
+                        <Expander VerticalAlignment="Top" Height="270" Canvas.Left="8" Canvas.Top="80" Width="298" >
+                            <Canvas>
+                                <Label VerticalAlignment="Top" Canvas.Top="5" RenderTransformOrigin="-0.22,-1.077">
+                                    Cities:
+                                </Label>
+                                <TextBox VerticalAlignment="Top" Height="21"  x:Name="CitiesTextBox" Width="157" RenderTransformOrigin="1.072,2.333" Canvas.Left="91" Canvas.Top="10"/>
+                                <TextBlock VerticalAlignment="Top" Canvas.Top="30" Height="53" Width="121">
+                                    Posts count
+                                    to analize:
+                                </TextBlock>
+                                <TextBox VerticalAlignment="Top" Height="21"  x:Name="PostsCountToAanalizeTextBox" Width="87" RenderTransformOrigin="1.609,3.19" Canvas.Left="161" Canvas.Top="52"/>
+                            </Canvas>
+                        </Expander>
+                    </Canvas>
                 </TabItem.Content>
             </TabItem>
             <TabItem x:Name="BlackListerTab">

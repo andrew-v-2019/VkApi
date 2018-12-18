@@ -1,63 +1,55 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using Newtonsoft.Json;
 using VKApi.ChicksLiker;
 
 namespace VkApi.WpfApp
 {
     public partial class MainWindow : Window
-    {
-        private readonly int _height = 500;
-        private readonly int _width = 500;
-        private List<string> GroupNames;
+    {   
+        private  ulong PostsCountToAnalyze = 1000;
+        private static string[] Cities = { "krasnoyarsk" };
+        private int ProfilePhotosToLike = 2;
+        private int MinAge = 18;
+        private int MaxAge = 27;
 
         public MainWindow()
         {
             InitializeComponent();
             FillControls();
-            SetSizes();
-            GroupNames = ReadGroupNamesFromFile();
+            SetSizes();        
         }
 
         private void FillControls()
         {
-            var enumToList = Enum.GetValues(typeof(Strategy)).Cast<Strategy>();
-            foreach (var enumItem in enumToList)
-            {
-                var item = new ComboBoxItem()
-                {
-                    Name = enumItem.ToString(),
-                    Content = enumItem.ToString()
-                };
-                AlgoritmComboBox.Items.Add(item);
-            }
+            var enumToList = Enum.GetValues(typeof(Strategy)).Cast<Strategy>().Select(x=>x.ToString()).ToList();
+            AlgoritmComboBox.FillComboBoxWithListItems(enumToList);
+            GroupNameComboBox.FillComboBoxFromFile();
         }
 
-        private List<string> ReadGroupNamesFromFile()
+        private void GroupNameComboBox_LostFocus(object sender, RoutedEventArgs routedEventArgs)
         {
-            var names = new List<string>();
-            const string fileName = "groupNames.json";
-            var filePath = AppDomain.CurrentDomain.BaseDirectory + "\\" + fileName;
-
-            if (!File.Exists(filePath))
+            if (string.IsNullOrWhiteSpace(GroupNameComboBox.Text))
             {
-                return names;
+                return;
             }
 
-            using (var r = new StreamReader(filePath))
+            var text = GroupNameComboBox.Text;
+            if (GroupNameComboBox.ContainsText(text))
             {
-                var json = r.ReadToEnd();
-                names = JsonConvert.DeserializeObject<List<string>>(json);
+                return;
             }
 
-            return names;
+            GroupNameComboBox.AddStringToComboBoxItems(text);
+            GroupNameComboBox.WriteComboBoxToFile();
         }
 
+
+
+
+
+        private readonly int _height = 500;
+        private readonly int _width = 500;
         private void SetSizes()
         {
             const int diff = 38;
@@ -73,21 +65,6 @@ namespace VkApi.WpfApp
             MainTabControl.MinWidth = _width;
             MainTabControl.MaxHeight = _height - diff;
             MainTabControl.MaxWidth = _width;
-        }
-
-        private void GroupNameComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            var a = e.AddedItems;
-        }
-
-        private void GroupNameComboBox_LostFocus(object sender, RoutedEventArgs routedEventArgs)
-        {
-            if (string.IsNullOrWhiteSpace(GroupNameComboBox.Text))
-            {
-                return;
-            }
-             
-            
         }
     }
 }

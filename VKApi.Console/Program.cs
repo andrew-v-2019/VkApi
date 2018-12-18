@@ -30,7 +30,7 @@ namespace VKApi.ChicksLiker
             _photoService = ServiceInjector.Retrieve<IPhotosService>();
         }
 
-        private const string GroupName = "znakomstva_krasnoyarsk124";// "vpispatrol";//"znakomstva_krasnoyarsk124";// "poisk_krsk";
+        private const string GroupName = "poisk_krsk";// "vpispatrol";//"znakomstva_krasnoyarsk124";// "poisk_krsk";
         private const ulong PostsCountToAnalyze = 1000;
         private static readonly string[] Cities = { "krasnoyarsk" };
         private const int ProfilePhotosToLike = 2;
