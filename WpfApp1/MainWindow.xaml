@@ -30,34 +30,57 @@
                     </StackPanel>
                 </TabItem.Header>
                 <TabItem.Content>
-                    <Canvas  Margin="0,0,4,1">
-                        <Label VerticalAlignment="Top" Canvas.Left="8" Canvas.Top="12">
-                            Algorithm:
-                        </Label>
-                        <ComboBox x:Name="AlgoritmComboBox"
-                            VerticalAlignment="Top" Canvas.Left="98" Canvas.Top="14" Width="164" RenderTransformOrigin="0.037,2.409"/>
-                        <Label VerticalAlignment="Top" Canvas.Top="49" Canvas.Left="7">
-                            Group Name:
-                        </Label>
-                        <ComboBox VerticalAlignment="Top"
-                                  IsEditable="True"
-                                  IsTextSearchEnabled="True"
-                                  x:Name="GroupNameComboBox" Height="21"  LostFocus="GroupNameComboBox_LostFocus" RenderTransformOrigin="4.259,2.19" Canvas.Left="98" Width="164" Canvas.Top="54"/>
-
-                        <Expander VerticalAlignment="Top" Height="270" Canvas.Left="8" Canvas.Top="80" Width="298" >
-                            <Canvas>
-                                <Label VerticalAlignment="Top" Canvas.Top="5" RenderTransformOrigin="-0.22,-1.077">
-                                    Cities:
-                                </Label>
-                                <TextBox VerticalAlignment="Top" Height="21"  x:Name="CitiesTextBox" Width="157" RenderTransformOrigin="1.072,2.333" Canvas.Left="91" Canvas.Top="10"/>
-                                <TextBlock VerticalAlignment="Top" Canvas.Top="30" Height="53" Width="121">
-                                    Posts count
-                                    to analize:
-                                </TextBlock>
-                                <TextBox VerticalAlignment="Top" Height="21"  x:Name="PostsCountToAanalizeTextBox" Width="87" RenderTransformOrigin="1.609,3.19" Canvas.Left="161" Canvas.Top="52"/>
-                            </Canvas>
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <Label  HorizontalAlignment="Left" Margin="0,4,0,-4">Algorithm:</Label>
+                            <ComboBox Grid.Column="1" Margin="0,9,98,1" HorizontalAlignment="Right" x:Name="AlgoritmComboBox" Width="316"/>
+                        </Grid>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                <ColumnDefinition Width="40*"></ColumnDefinition>
+                                <ColumnDefinition Width="19*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,4,0,0">Group Name:</Label>
+                            <ComboBox IsEditable="True" 
+                                      Margin="80,9,99,4"
+                                      IsTextSearchEnabled="True"
+                                      x:Name="GroupNameComboBox" 
+                                      LostFocus="GroupNameComboBox_LostFocus" Grid.ColumnSpan="3"/>
+                        </Grid>
+                        <Expander Margin="5,0,97,0" Height="91">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        <ColumnDefinition Width="*"></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+                                    <Label HorizontalAlignment="Left" Margin="-5,0,0,0">
+                                        Cities:
+                                    </Label>
+                                    <TextBox Grid.Column="1" 
+                                         Margin="37,5,0,0" 
+                                         x:Name="CitiesTextBox"/>
+                                </Grid>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"></ColumnDefinition>
+                                        <ColumnDefinition Width="*"></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock TextWrapping="Wrap"
+                                               HorizontalAlignment="Left" Margin="0,5,0,-22" Width="70">
+                                        Posts count to analize:
+                                    </TextBlock>
+                                    <TextBox Grid.Column="1" 
+                                             x:Name="PostsCountToAanalizeTextBox" Margin="3,10,193,-15"/>
+                                </Grid>
+                            </StackPanel>
                         </Expander>
-                    </Canvas>
+                    </StackPanel>
                 </TabItem.Content>
             </TabItem>
             <TabItem x:Name="BlackListerTab">
