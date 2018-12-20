@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WpfApp1"
+        xmlns:models="clr-namespace:VkApi.Models;assembly=VkApi.Models"
         mc:Ignorable="d"
         Title="MainWindow"
         x:Name="MainContainer"
@@ -13,7 +13,10 @@
         Width="430"
         MinWidth="430"
         MaxWidth="430">
-    <Grid>
+    <Window.Resources>
+        <models:LikeClickerConfiguration x:Key="Configuration" />
+    </Window.Resources>
+    <Grid DataContext="{StaticResource Configuration}">
         <TabControl HorizontalAlignment="Left" Background="LightCyan" 
                     Height="470"
                     MinHeight="470"
@@ -36,8 +39,10 @@
                                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                                 <ColumnDefinition Width="*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <Label  HorizontalAlignment="Left" Margin="0,4,0,-4">Algorithm:</Label>
-                            <ComboBox Margin="0,9,28,1" HorizontalAlignment="Right" x:Name="AlgoritmComboBox" Width="316" Grid.Column="1"/>
+                            <Label HorizontalAlignment="Left" Margin="0,4,0,-4">Algorithm:</Label>
+                            <ComboBox Text="{Binding Strategy,Mode=TwoWay}" 
+                                      Margin="0,9,28,1" 
+                                      HorizontalAlignment="Right" x:Name="AlgoritmComboBox" Width="316" Grid.Column="1"/>
                         </Grid>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -47,12 +52,13 @@
                             </Grid.ColumnDefinitions>
                             <Label VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,4,0,0">Group Name:</Label>
                             <ComboBox IsEditable="True" 
+                                      Text="{Binding GroupName,Mode=TwoWay}" 
                                       Margin="80,9,28,4"
                                       IsTextSearchEnabled="True"
                                       x:Name="GroupNameComboBox" 
                                       LostFocus="GroupNameComboBox_LostFocus" Grid.ColumnSpan="3"/>
                         </Grid>
-                        <Expander Margin="5,0,19,0" Height="97">
+                        <Expander Margin="5,0,19,0" Height="175">
                             <StackPanel>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -64,6 +70,7 @@
                                     </Label>
                                     <TextBox Grid.Column="1" 
                                          Margin="38,0,10,5" 
+                                         Text="{Binding CitiesString,Mode=TwoWay}" 
                                          x:Name="CitiesTextBox"/>
                                 </Grid>
                                 <Grid Height="49">
@@ -80,17 +87,34 @@
                                         Posts count to analize:
                                     </TextBlock>
                                     <TextBox Grid.Column="1" 
+                                             Text="{Binding PostsCountToAnalyze,Mode=TwoWay}" 
                                              x:Name="PostsCountToAanalizeTextBox" Margin="4,9,0,20"/>
                                     <TextBlock Grid.Column="2" TextWrapping="Wrap" Margin="15,10,64,20" Grid.ColumnSpan="2">
                                         Min Age:
                                     </TextBlock>
                                     <TextBox Grid.Column="3" 
+                                             Text="{Binding MinAge,Mode=TwoWay}" 
                                              x:Name="MinAge" Margin="15,9,0,20"/>
                                     <TextBlock Grid.Column="4" TextWrapping="Wrap" Margin="17,10,63,20" Grid.ColumnSpan="2">
                                         Max Age:
                                     </TextBlock>
                                     <TextBox Grid.Column="5" 
+                                             Text="{Binding MaxAge,Mode=TwoWay}" 
                                              x:Name="MaxAge" Margin="10,9,11,20" RenderTransformOrigin="0.785,0.895"/>
+                                </Grid>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" MinWidth="79"></ColumnDefinition>
+                                        <ColumnDefinition Width="260*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap"
+                                            Margin="0,-6,0,-29" RenderTransformOrigin="0.508,0.914" Width="69">
+                                        Profile's photos to like:
+                                    </TextBlock>
+                                    <TextBox 
+                                        Text="{Binding ProfilePhotosToLike,Mode=TwoWay}" 
+                                             Margin="75,2,271,1" Height="20"
+                                             x:Name="ProfilePhotosToLike" RenderTransformOrigin="0.265,0.556" Grid.ColumnSpan="2"/>
                                 </Grid>
                             </StackPanel>
                         </Expander>
