@@ -10,8 +10,8 @@ namespace VkApi.WpfApp
         private  ulong PostsCountToAnalyze = 1000;
         private static string[] Cities = { "krasnoyarsk" };
         private int ProfilePhotosToLike = 2;
-        private int MinAge = 18;
-        private int MaxAge = 27;
+        //private int MinAge = 18;
+        //private int MaxAge = 27;
 
         public MainWindow()
         {
@@ -49,10 +49,10 @@ namespace VkApi.WpfApp
 
 
         private readonly int _height = 500;
-        private readonly int _width = 500;
+        private readonly int _width = 430;
         private void SetSizes()
         {
-            const int diff = 38;
+            const int diff = 50;
             MainContainer.Height = _height;
             MainContainer.Width = _width;
             MainContainer.MinHeight = _height;

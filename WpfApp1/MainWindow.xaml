@@ -10,18 +10,18 @@
         Height="500"
         MinHeight="500"
         MaxHeight="500"
-        Width="500"
-        MinWidth="500"
-        MaxWidth="500">
+        Width="430"
+        MinWidth="430"
+        MaxWidth="430">
     <Grid>
         <TabControl HorizontalAlignment="Left" Background="LightCyan" 
                     Height="470"
                     MinHeight="470"
                     MaxHeight="470"
-                    Width="263"
-                    MinWidth="500"
-                    x:Name="MainTabControl"
-                    MaxWidth="620" RenderTransformOrigin="0.5,0.5" VerticalAlignment="Bottom" Margin="0,-1,0,0">
+                    Width="430"
+                    MinWidth="430"
+                    MaxWidth="430"
+                    x:Name="MainTabControl" VerticalAlignment="Bottom" Margin="0,-1,0,0">
             <TabItem x:Name="LikeClikerTab">
                 <TabItem.Header>
                     <StackPanel Orientation="Horizontal">
@@ -37,7 +37,7 @@
                                 <ColumnDefinition Width="*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <Label  HorizontalAlignment="Left" Margin="0,4,0,-4">Algorithm:</Label>
-                            <ComboBox Grid.Column="1" Margin="0,9,98,1" HorizontalAlignment="Right" x:Name="AlgoritmComboBox" Width="316"/>
+                            <ComboBox Margin="0,9,28,1" HorizontalAlignment="Right" x:Name="AlgoritmComboBox" Width="316" Grid.Column="1"/>
                         </Grid>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -47,12 +47,12 @@
                             </Grid.ColumnDefinitions>
                             <Label VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,4,0,0">Group Name:</Label>
                             <ComboBox IsEditable="True" 
-                                      Margin="80,9,99,4"
+                                      Margin="80,9,28,4"
                                       IsTextSearchEnabled="True"
                                       x:Name="GroupNameComboBox" 
                                       LostFocus="GroupNameComboBox_LostFocus" Grid.ColumnSpan="3"/>
                         </Grid>
-                        <Expander Margin="5,0,97,0" Height="91">
+                        <Expander Margin="5,0,19,0" Height="97">
                             <StackPanel>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -63,20 +63,34 @@
                                         Cities:
                                     </Label>
                                     <TextBox Grid.Column="1" 
-                                         Margin="37,5,0,0" 
+                                         Margin="38,0,10,5" 
                                          x:Name="CitiesTextBox"/>
                                 </Grid>
-                                <Grid>
+                                <Grid Height="49">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"></ColumnDefinition>
-                                        <ColumnDefinition Width="*"></ColumnDefinition>
+                                        <ColumnDefinition Width="14*"></ColumnDefinition>
+                                        <ColumnDefinition Width="15*"></ColumnDefinition>
+                                        <ColumnDefinition Width="Auto" MinWidth="69"></ColumnDefinition>
+                                        <ColumnDefinition Width="Auto" MinWidth="67"></ColumnDefinition>
+                                        <ColumnDefinition Width="Auto" MinWidth="76"></ColumnDefinition>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock TextWrapping="Wrap"
-                                               HorizontalAlignment="Left" Margin="0,5,0,-22" Width="70">
+                                               HorizontalAlignment="Left" Margin="0,5,0,0" Width="70">
                                         Posts count to analize:
                                     </TextBlock>
                                     <TextBox Grid.Column="1" 
-                                             x:Name="PostsCountToAanalizeTextBox" Margin="3,10,193,-15"/>
+                                             x:Name="PostsCountToAanalizeTextBox" Margin="4,9,0,20"/>
+                                    <TextBlock Grid.Column="2" TextWrapping="Wrap" Margin="15,10,64,20" Grid.ColumnSpan="2">
+                                        Min Age:
+                                    </TextBlock>
+                                    <TextBox Grid.Column="3" 
+                                             x:Name="MinAge" Margin="15,9,0,20"/>
+                                    <TextBlock Grid.Column="4" TextWrapping="Wrap" Margin="17,10,63,20" Grid.ColumnSpan="2">
+                                        Max Age:
+                                    </TextBlock>
+                                    <TextBox Grid.Column="5" 
+                                             x:Name="MaxAge" Margin="10,9,11,20" RenderTransformOrigin="0.785,0.895"/>
                                 </Grid>
                             </StackPanel>
                         </Expander>
