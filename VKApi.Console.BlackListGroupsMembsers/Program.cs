@@ -100,7 +100,7 @@ namespace VKApi.Console.Blacklister
                 try
                 {
                     enemyFriends = _userService.GetFriends(blackListedUserId)
-                        .OrderByDescending(x => x.FromCity(_city))
+                        .Where(x => x.FromCity(_city))
                         .ToList();
                 }
                 catch (Exception e)

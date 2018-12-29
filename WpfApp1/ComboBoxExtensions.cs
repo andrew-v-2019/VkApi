@@ -35,7 +35,8 @@ namespace VkApi.WpfApp
         {
             var item = new ComboBoxItem()
             {
-                Content = itemToAdd
+                Content = itemToAdd,
+                Name = itemToAdd
             };
             comboBox.Items.Add(item);
         }

@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 using VkApi.Models;
 using VKApi.BL.Interfaces;
 using VKApi.BL.Unity;
@@ -13,33 +12,47 @@ namespace VkApi.WpfApp
     public partial class MainWindow : Window
     {
         private static IConfigurationProvider _configurationProvider;
-        public LikeClickerConfiguration Configuration;
+        public ConfigurationViewModel Configuration;
 
         public MainWindow()
         {
+            InitializeComponent();
+
             ServiceInjector.ConfigureServices();
             _configurationProvider = ServiceInjector.Retrieve<IConfigurationProvider>();
-            Configuration = GetConfigurations();
-            InitializeComponent();
             FillControls();
-
-
+            Configuration = GetConfigurations();
+            var enumToList = Enum.GetValues(typeof(Strategy)).Cast<Strategy>().Select(x => x.ToString()).ToList();
+            Configuration.Strategies = new List<string>();
+            Configuration.Strategies.AddRange(enumToList);
+            DataContext = Configuration;
+           
             SetSizes();
         }
 
-        private static LikeClickerConfiguration GetConfigurations()
+        private static ConfigurationViewModel GetConfigurations()
         {
-            var configuration = new LikeClickerConfiguration();
+            var configuration = new ConfigurationViewModel();
             configuration.CitiesString = _configurationProvider.GetConfig("Cities", "krasnoyarsk");
-            _configurationProvider.FillConfigurationsHolder(configuration);
+            configuration.GroupName = _configurationProvider.GetConfig(nameof(configuration.GroupName), "poisk_krk");
+            configuration.MaxAge = Convert.ToInt32(_configurationProvider.GetConfig(nameof(configuration.MaxAge), "30"));
+            configuration.MinAge = Convert.ToInt32(_configurationProvider.GetConfig(nameof(configuration.MinAge), "18"));
+            configuration.PostsCountToAnalyze = Convert.ToInt32(_configurationProvider.GetConfig(nameof(configuration.PostsCountToAnalyze), "1000"));
+            configuration.ProfilePhotosToLike = Convert.ToInt32(_configurationProvider.GetConfig(nameof(configuration.ProfilePhotosToLike), "1"));
+            configuration.Password = _configurationProvider.GetConfig(nameof(configuration.Password));
+            configuration.Login = _configurationProvider.GetConfig(nameof(configuration.Login));
+            configuration.ApplicationId = _configurationProvider.GetConfig(nameof(configuration.ApplicationId));
+            Strategy s = Strategy.PostsLikers;
+            Enum.TryParse(_configurationProvider.GetConfig(nameof(configuration.Strategy), Strategy.PostsLikers.ToString()), out s);
+            configuration.Strategy = s.ToString();
             return configuration;
         }
 
 
         private void FillControls()
         {
-            var enumToList = Enum.GetValues(typeof(Strategy)).Cast<Strategy>().Select(x => x.ToString()).ToList();
-            AlgoritmComboBox.FillComboBoxWithListItems(enumToList);
+            
+           // AlgoritmComboBox.FillComboBoxWithListItems(;enumToList);
             GroupNameComboBox.FillComboBoxFromFile();
         }
 

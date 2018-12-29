@@ -1,9 +1,9 @@
-﻿using System.ComponentModel;
+﻿using VkApi.Models.Configurations;
 using VKApi.ChicksLiker;
 
 namespace VkApi.Models
 {
-    public class LikeClickerConfiguration
+    public class LikeClickerConfiguration: ConfigurationBase
     {
         public string GroupName { get; set; }
 
@@ -21,6 +21,6 @@ namespace VkApi.Models
 
         public int MaxAge { get; set; }
 
-        public Strategy Strategy  { get; set; }
-}
+        public Strategy Strategy { get; set; }
+    }
 }

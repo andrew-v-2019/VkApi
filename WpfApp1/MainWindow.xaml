@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:models="clr-namespace:VkApi.Models;assembly=VkApi.Models"
+        xmlns:models1="clr-namespace:VkApi.WpfApp"
         mc:Ignorable="d"
         Title="MainWindow"
         x:Name="MainContainer"
@@ -13,10 +13,7 @@
         Width="430"
         MinWidth="430"
         MaxWidth="430">
-    <Window.Resources>
-        <models:LikeClickerConfiguration x:Key="Configuration" />
-    </Window.Resources>
-    <Grid DataContext="{StaticResource Configuration}">
+    <Grid>
         <TabControl HorizontalAlignment="Left" Background="LightCyan" 
                     Height="470"
                     MinHeight="470"
@@ -40,7 +37,8 @@
                                 <ColumnDefinition Width="*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <Label HorizontalAlignment="Left" Margin="0,4,0,-4">Algorithm:</Label>
-                            <ComboBox Text="{Binding Strategy,Mode=TwoWay}" 
+                            <ComboBox SelectedValue="{Binding Strategy, Mode=TwoWay}"
+                                      ItemsSource="{Binding Path=Strategies}"
                                       Margin="0,9,28,1" 
                                       HorizontalAlignment="Right" x:Name="AlgoritmComboBox" Width="316" Grid.Column="1"/>
                         </Grid>
@@ -87,7 +85,7 @@
                                         Posts count to analize:
                                     </TextBlock>
                                     <TextBox Grid.Column="1" 
-                                             Text="{Binding PostsCountToAnalyze,Mode=TwoWay}" 
+                                             Text="{Binding Path=PostsCountToAnalyze,Mode=TwoWay}" 
                                              x:Name="PostsCountToAanalizeTextBox" Margin="4,9,0,20"/>
                                     <TextBlock Grid.Column="2" TextWrapping="Wrap" Margin="15,10,64,20" Grid.ColumnSpan="2">
                                         Min Age:

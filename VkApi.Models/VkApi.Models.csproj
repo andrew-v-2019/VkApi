@@ -41,7 +41,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LikeClickerConfiguration.cs" />
+    <Compile Include="Configurations\ConfigurationBase.cs" />
+    <Compile Include="Configurations\LikeClickerConfiguration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
