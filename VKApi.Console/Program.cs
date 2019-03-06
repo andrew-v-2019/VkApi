@@ -35,7 +35,7 @@ namespace VKApi.ChicksLiker
         private static readonly string[] Cities = { "krasnoyarsk" };
         private const int ProfilePhotosToLike = 2;
 
-        private const int MinAge = 18;
+        private const int MinAge = 17;
         private const int MaxAge = 27;
 
         private const Strategy Strategy = ChicksLiker.Strategy.PostsLikers;

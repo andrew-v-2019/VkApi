@@ -8,6 +8,7 @@ using VkNet.Model;
 using VkNet.Model.RequestParams;
 using VKApi.BL.Interfaces;
 using VKApi.BL.Models;
+using VkNet.Model.Attachments;
 
 namespace VKApi.BL.Services
 {

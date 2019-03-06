@@ -3,6 +3,7 @@ using VkNet;
 using VkNet.Enums.Filters;
 using VkNet.Model;
 using VKApi.BL.Models;
+using VkNet.Model.Attachments;
 
 namespace VKApi.BL.Interfaces
 {

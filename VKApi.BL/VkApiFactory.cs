@@ -33,7 +33,9 @@ namespace VKApi.BL
                     Convert.ToUInt64(_configurationProvider.GetConfig(nameof(ApiAuthParams.ApplicationId))),
                 Login = _configurationProvider.GetConfig(nameof(ApiAuthParams.Login)),
                 Password = _configurationProvider.GetConfig(nameof(ApiAuthParams.Password)),
-                Settings = Settings.All
+                Settings = Settings.Wall,
+               // AccessToken = "6e3813426e3813426e381342086e51042366e386e3813423246640d0f9ba0d4bdf02a8f",
+                
             });
 
             return _api;

@@ -201,7 +201,7 @@ namespace VKApi.Console.Blacklister
             reversedList.Reverse();
 
             var deleted = totalUsersList.Where(u => u.FirstName.Contains(_deletedUserText))
-                .Select(u => u)
+                .SuperSelect(u => u)
                 .ToList();
             reversedList.AddRange(deleted);
             return reversedList;
