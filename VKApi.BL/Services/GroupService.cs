@@ -9,6 +9,7 @@ using VkNet.Model.RequestParams;
 using VKApi.BL.Interfaces;
 using VKApi.BL.Models;
 using VkNet.Model.Attachments;
+using System.Collections.ObjectModel;
 
 namespace VKApi.BL.Services
 {
@@ -33,25 +34,32 @@ namespace VKApi.BL.Services
             {
                 step = count.Value;
             }
-            ulong offset = 1;
-            ulong totalCount;
+            ulong offset = 0;
+            ulong totalCount = 0;
             do
             {
-                var param = new WallGetParams()
+                try
                 {
-                    OwnerId = -groupId,
-                    Filter = WallFilter.Owner,
-                    Count = step,
-                    Offset = offset
-                };
-                var getResult = api.Wall.Get(param);
-                var postsChunk = getResult.WallPosts.Select(p => p).ToList();
-                posts.AddRange(postsChunk);
-                offset = offset + step;
-                param.Offset = offset;
-                totalCount = getResult.TotalCount;
-                Console.Clear();
-                Console.WriteLine($"Total posts count {posts.Count}.");
+                    var param = new WallGetParams()
+                    {
+                        OwnerId = -groupId,
+                        Filter = WallFilter.Owner,
+                        Count = step,
+                        Offset = offset,
+                    };
+                    var getResult = api.Wall.Get(param);
+                    var postsChunk = getResult.WallPosts.Select(p => p).ToList();
+                    posts.AddRange(postsChunk);
+                    offset = offset + step;
+                    param.Offset = offset;
+                    totalCount = getResult.TotalCount;
+                    Console.Clear();
+                    Console.WriteLine($"Total posts count {posts.Count}.");
+                }
+                catch
+                {
+                    offset = offset + 1;
+                }
             } while (!count.HasValue ? offset < totalCount : offset < count.Value);
 
             var orderredPosts = posts.Where(p => p.Likes != null && p.Likes.Count > 0)
@@ -75,7 +83,7 @@ namespace VKApi.BL.Services
         {
             using (var api = _apiFactory.CreateVkApi())
             {
-                var p = new GroupsSearchParams() {Query = searchPhrase, Count = count};
+                var p = new GroupsSearchParams() { Query = searchPhrase, Count = count };
                 var searchRes = api.Groups.Search(p);
                 var groups = searchRes.ToList();
                 return groups;
@@ -164,22 +172,39 @@ namespace VKApi.BL.Services
 
         private static int GetGroupMembersCount(string groupName, VkApi api)
         {
-            var res = GetByName(groupName, api);
-            return res.MembersCount.GetValueOrDefault();
+            try
+            {
+                var res = GetByName(groupName, api);
+
+                return res.MembersCount.GetValueOrDefault();
+            }
+            catch(Exception e)
+            {
+                return 0;
+            }
         }
 
         private static Group GetByName(string groupName, VkApi api)
         {
-            var groupId = new List<string> {groupName};
-            var res = api.Groups.GetById(groupId, groupName, GroupsFields.MembersCount);
-            return res.FirstOrDefault();
+            try
+            {
+                var groupId = new List<string> { groupName.ToLower().Replace("public", string.Empty) };
+                var res = api.Groups.GetById(groupId, null, GroupsFields.MembersCount);
+                return res.FirstOrDefault();
+            }
+            catch
+            {
+                var res = api.Groups.GetById(null, groupName, GroupsFields.MembersCount);
+                return res.FirstOrDefault();
+            }
+
         }
 
         public Group GetByName(string groupName)
         {
             using (var api = _apiFactory.CreateVkApi())
             {
-              return  GetByName(groupName, api);
+                return GetByName(groupName, api);
             }
         }
     }

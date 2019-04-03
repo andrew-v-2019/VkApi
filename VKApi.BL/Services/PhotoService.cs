@@ -33,7 +33,7 @@ namespace VKApi.BL.Services
             return alb;
         }
 
-        public List<Photo> GetProfilePhotos(long ownerId, int count = 1)
+        public List<Photo> GetProfilePhotos(long ownerId)
         {
             using (var api = _apiFactory.CreateVkApi())
             {
@@ -41,7 +41,6 @@ namespace VKApi.BL.Services
                 {
                     Extended = true,
                     AlbumId = PhotoAlbumType.Profile,
-                    Count = (ulong?) count,
                     OwnerId = ownerId,
                     Reversed = true,
                 };

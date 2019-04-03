@@ -7,6 +7,6 @@ namespace VKApi.BL.Interfaces
     public interface IPhotosService
     {
         List<PhotoAlbum> GetAlbums(long ownerId);
-        List<Photo> GetProfilePhotos(long ownerId, int count = 1);
+        List<Photo> GetProfilePhotos(long ownerId);
     }
 }

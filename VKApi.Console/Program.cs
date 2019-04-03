@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using VkNet.Enums;
 using VkNet.Enums.Filters;
 using VkNet.Enums.SafetyEnums;
@@ -10,6 +9,8 @@ using VKApi.BL;
 using VKApi.BL.Interfaces;
 using VKApi.BL.Models;
 using VKApi.BL.Unity;
+using VkNet.Model.Attachments;
+using VkNet;
 
 namespace VKApi.ChicksLiker
 {
@@ -30,13 +31,17 @@ namespace VKApi.ChicksLiker
             _photoService = ServiceInjector.Retrieve<IPhotosService>();
         }
 
-        private const string GroupName = "poisk_krsk";// "vpispatrol";//"znakomstva_krasnoyarsk124";// "poisk_krsk";
+        private const string GroupName = "online_krsk24";// "vpispatrol";//"poisk_krsk";// "znakomstva_krasnoyarsk124";sexykrsk seksznakomstvadivnogorsk kras.znakomstva  rmes_krs  krasn25  len_oblstroy  krsk_vyb  krasnoyarsk_krk
+
+        private static string[] GroupNames = new[] { "online_krsk24", "poisk_krsk", "kras.znakomstva", "znakomstva_krasnoyarsk124", "krasn25", "krsk_vyb", "krasnoyarsk_krk" }; //{"poisk_krsk" "club143805992","public144259550", "kuni_krsk", "online_krsk24", "seksznakomstvadivnogorsk", "kras.znakomstva" };// "vpispatrol", "poisk_krsk", "znakomstva_krasnoyarsk124", "sexykrsk", "seksznakomstvadivnogorsk", "kras.znakomstva", "rmes_krs", "krasn25", "len_oblstroy", "krsk_vyb", "krasnoyarsk_krk" };
+
         private const ulong PostsCountToAnalyze = 1000;
-        private static readonly string[] Cities = { "krasnoyarsk" };
+        private static readonly string[] Cities = { "krasnoyarsk", "divnogorsk" };
         private const int ProfilePhotosToLike = 2;
 
-        private const int MinAge = 17;
-        private const int MaxAge = 27;
+        private const int MinAge = 18;
+        private const int MaxAge = 30;
+        private const int SkipRecentlyLikedProfilesPhotosCount = 1;
 
         private const Strategy Strategy = ChicksLiker.Strategy.PostsLikers;
 
@@ -46,17 +51,30 @@ namespace VKApi.ChicksLiker
             switch (Strategy)
             {
                 case Strategy.PostsLikers:
-                    var posts = _groupService.GetPosts(GroupName, PostsCountToAnalyze);
-                    var id = posts.First()?.OwnerId;
+                    var posts = new List<VkNet.Model.Post>();
 
-                    if (id == null)
+                    GroupNames = GroupNames.Distinct().ToArray();
+                    var likerIds = new List<long>();
+
+                    foreach (var name in GroupNames)
                     {
-                        return new List<UserExtended>();
+                        var groupPosts = _groupService.GetPosts(name, PostsCountToAnalyze);
+                        posts.AddRange(groupPosts);
+                        foreach (var post in groupPosts)
+                        {
+                            var ownerId = post.OwnerId;
+                            var postId = post.Id;
+                            if (ownerId.HasValue && postId.HasValue)
+                            {
+                                var likerIdsChunk = _likesService.GetUsersWhoLiked(ownerId.Value, post.Id.Value, LikeObjectType.Post);
+                                likerIds.AddRange(likerIdsChunk.Distinct());
+                                Console.Clear();
+                                Console.WriteLine($"user ids count: {likerIds.Count}");
+                            }
+                        }
                     }
 
-                    var ownerId = id.Value;
-                    var postIds = posts.Where(x => x.Id.HasValue).Select(x => x.Id.Value).ToList();
-                    var likerIds = _likesService.GetUsersWhoLiked(ownerId, postIds, LikeObjectType.Post);
+                    likerIds = likerIds.Distinct().ToList();
                     Console.WriteLine("Get user by ids");
                     var chunk = _userService.GetUsersByIds(likerIds);
                     return chunk;
@@ -64,7 +82,7 @@ namespace VKApi.ChicksLiker
                     var group = _groupService.GetByName(GroupName);
                     var members = _groupService.GetGroupMembers(group.Id.ToString(), UsersFields.Domain);
                     var fields = GetFields();
-                    members = _userService.GetUsersByIds(members.Select(x => x.Id).ToList(), fields);
+                    members = _userService.GetUsersByIds(members.Select(x => x.Id).ToList(), fields).Distinct().ToList();
                     return members;
             }
         }
@@ -98,34 +116,32 @@ namespace VKApi.ChicksLiker
                 var counter = 0;
                 var count = filteredUsers.Count - 1;
                 do
-                {                                        
+                {
+                    if (!filteredUsers.Any())
+                    {
+                        break;
+                    }
+
                     var user = filteredUsers[counter];
+
+
 
                     var wait = (counter % 2 > 0) ? 3 : 4;
                     if (user.Age % 2 > 0)
                     {
                         wait = (counter % 2 > 0) ? 2 : new Random().Next(1, 5);
                     }
-                   
+
                     try
                     {
-                        var profilePhotos = _photoService.GetProfilePhotos(user.Id, ProfilePhotosToLike);
+                        var profilePhotos = _photoService.GetProfilePhotos(user.Id);
+                        var skip = SkipRecentlyLiked(profilePhotos);
                         var result = false;
 
-                        foreach (var profilePhoto in profilePhotos)
+                        if (!skip)
                         {
-                            if (profilePhoto.Likes.UserLikes)
-                            {
-                                continue;
-                            }
-
-                            if (profilePhoto.Id.HasValue)
-                            {
-                                result = _likesService.AddLike(user.Id, profilePhoto.Id.Value, LikeObjectType.Photo,
-                                    api);
-                            }
+                            result = LikeProfilePhotos(profilePhotos, api, user);
                         }
-
                         counter++;
 
                         var message =
@@ -149,6 +165,59 @@ namespace VKApi.ChicksLiker
             }
 
             Console.ReadLine();
+        }
+
+        private static bool SkipRecentlyLiked(List<Photo> profilePhotos)
+        {
+            var recentliLikedCount = 0;
+
+            if (SkipRecentlyLikedProfilesPhotosCount <= 0)
+            {
+                return false;
+            }
+
+            var skip = false;
+            foreach (var photo in profilePhotos)
+            {
+                if (photo.Likes.UserLikes)
+                {
+                    recentliLikedCount++;
+                }
+                if (recentliLikedCount >= SkipRecentlyLikedProfilesPhotosCount)
+                {
+                    skip = true;
+                    break;
+                }
+            }
+
+            return skip;
+        }
+
+        private static bool LikeProfilePhotos(List<Photo> profilePhotos, VkApi api, UserExtended user)
+        {
+            var result = false;
+
+            int likedPhotosCounter = 0;
+            foreach (var profilePhoto in profilePhotos)
+            {
+                if (profilePhoto.Likes.UserLikes)
+                {
+                    continue;
+                }
+
+                if (profilePhoto.Id.HasValue)
+                {
+                    result = _likesService.AddLike(user.Id, profilePhoto.Id.Value, LikeObjectType.Photo,
+                        api);
+                    likedPhotosCounter++;
+                }
+                if (likedPhotosCounter >= ProfilePhotosToLike)
+                {
+                    break;
+                }
+            }
+
+            return result;
         }
 
         private static ProfileFields GetFields()

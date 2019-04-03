@@ -17,18 +17,15 @@ namespace VKApi.BL.Services
             _apiFactory = apiFactory;
         }
 
-        public List<long> GetUsersWhoLiked(long ownerId, List<long> itemIds, LikeObjectType type)
+
+        public List<long> GetUsersWhoLiked(long ownerId, long itemId, LikeObjectType type)
         {
             var likerIds = new List<long>();
             using (var api = _apiFactory.CreateVkApi())
             {
-                foreach (var itemId in itemIds)
-                {
-                    var chunk = GetUsersWhoLiked(ownerId, itemId, type, api);
-                    likerIds.AddRange(chunk);
-                    Console.Clear();
-                    Console.WriteLine($"user ids count: {likerIds.Count}");
-                }
+                var chunk = GetUsersWhoLiked(ownerId, itemId, type, api);
+                likerIds.AddRange(chunk);
+                
             }
             return likerIds.Distinct().ToList();
         }
@@ -42,7 +39,7 @@ namespace VKApi.BL.Services
                     OwnerId = ownerId,
                     Count = count,
                     Type = type,
-                    ItemId = itemId
+                    ItemId = itemId,
                 })
                 .ToList();
             System.Threading.Thread.Sleep(TimeSpan.FromSeconds(.10));
