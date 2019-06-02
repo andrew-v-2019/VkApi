@@ -113,15 +113,9 @@ namespace VKApi.BL
 
         public static bool IsSingle(this User user)
         {
-            //return user.Relation != RelationType.Amorous
-            //    && user.Relation != RelationType.CivilMarriage
-            //    && user.Relation != RelationType.HasFriend
-            //    && user.Relation != RelationType.Married
-            //    && user.Relation != RelationType.Engaged;
-
-            return user.Relation == RelationType.NotMarried 
-                 || user.Relation == RelationType.InActiveSearch 
-                 || user.Relation == RelationType.ItsComplex 
+            return user.Relation == RelationType.NotMarried
+                 || user.Relation == RelationType.InActiveSearch
+                 || user.Relation == RelationType.ItsComplex
                  || user.Relation == RelationType.Unknown;
         }
 
@@ -144,7 +138,8 @@ namespace VKApi.BL
 
         public static bool HasChildrens(this User user)
         {
-            return user.Relatives != null && user.Relatives.Any(x => x.Type == RelativeType.Child);
+            return user.Relatives != null
+                && user.Relatives.Any(x => x.Type == RelativeType.Child);
         }
 
 

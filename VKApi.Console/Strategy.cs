@@ -3,6 +3,7 @@
     public enum Strategy
     {
         GroupMembers,
-        PostsLikers
+        PostsLikers,
+        SearchResults
     }
 }

@@ -11,6 +11,8 @@ using VKApi.BL.Models;
 using VKApi.BL.Unity;
 using VkNet.Model.Attachments;
 using VkNet;
+using VkNet.Model.RequestParams;
+using System.Threading.Tasks;
 
 namespace VKApi.ChicksLiker
 {
@@ -39,14 +41,14 @@ namespace VKApi.ChicksLiker
         private static readonly string[] Cities = { "krasnoyarsk", "divnogorsk" };
         private const int ProfilePhotosToLike = 2;
 
-        private const int MinAge = 18;
-        private const int MaxAge = 30;
+        private const int MinAge = 20;
+        private const int MaxAge = 27;
         private const int SkipRecentlyLikedProfilesPhotosCount = 1;
 
-        private const Strategy Strategy = ChicksLiker.Strategy.PostsLikers;
+        private const Strategy Strategy = ChicksLiker.Strategy.SearchResults;
 
 
-        private static List<UserExtended> GetUserIdsByStrategy()
+        private static async Task<List<UserExtended>> GetUserIdsByStrategyAsync()
         {
             switch (Strategy)
             {
@@ -84,11 +86,37 @@ namespace VKApi.ChicksLiker
                     var fields = GetFields();
                     members = _userService.GetUsersByIds(members.Select(x => x.Id).ToList(), fields).Distinct().ToList();
                     return members;
+
+                case Strategy.SearchResults:
+                    var searchResults = await SearchUsers();
+                    return searchResults;
             }
+
+            return new List<UserExtended>();
+        }
+
+        private static async Task<List<UserExtended>> SearchUsers()
+        {
+            var searchParams = new UserSearchParams()
+            {
+                AgeFrom = MinAge,
+                AgeTo = MaxAge,
+                Status = MaritalStatus.TheActiveSearch,             
+                Sex = Sex.Female,
+                HasPhoto = true,
+                Sort = UserSort.ByRegDate,
+                Fields = GetFields(),
+                Count = 1000,
+                Country = 1,
+                City = 73
+            };
+
+            var users = await _userService.Search(searchParams);
+            return users;
         }
 
 
-        private static void Main()
+        private static async Task Main()
         {
             var ps = Process.GetCurrentProcess();
             ps.PriorityClass = ProcessPriorityClass.RealTime;
@@ -98,7 +126,7 @@ namespace VKApi.ChicksLiker
             Console.Clear();
 
             Console.WriteLine("Get user ids...");
-            var users = GetUserIdsByStrategy();
+            var users = await GetUserIdsByStrategyAsync();
             Console.WriteLine($"User ids count is {users.Count}.");
 
             using (var api = _apiFactory.CreateVkApi())

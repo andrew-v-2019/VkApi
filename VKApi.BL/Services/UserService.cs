@@ -6,6 +6,7 @@ using VkNet.Enums.Filters;
 using VkNet.Model.RequestParams;
 using VKApi.BL.Interfaces;
 using VKApi.BL.Models;
+using System.Threading.Tasks;
 
 namespace VKApi.BL.Services
 {
@@ -51,7 +52,7 @@ namespace VKApi.BL.Services
             }
         }
 
-        public List<UserExtended> GetUsersByIds(List<long> userIds, ProfileFields profileFields =null)
+        public List<UserExtended> GetUsersByIds(List<long> userIds, ProfileFields profileFields = null)
         {
             if (profileFields == null)
             {
@@ -74,7 +75,7 @@ namespace VKApi.BL.Services
                     {
                         Console.WriteLine(e.Message);
                         continue;
-                        
+
                     }
                     Console.Clear();
                     Console.WriteLine($"Users total count: {users.Count}");
@@ -108,10 +109,20 @@ namespace VKApi.BL.Services
 
         public bool HaveCommonFriends(long targetUserId, long sourderUserId, VkApi api)
         {
-            var commonFriendsParams = new FriendsGetMutualParams {TargetUid = targetUserId, SourceUid = sourderUserId};
+            var commonFriendsParams = new FriendsGetMutualParams { TargetUid = targetUserId, SourceUid = sourderUserId };
             var commonFriends =
                 api.Friends.GetMutual(commonFriendsParams);
+
             return commonFriends.Any();
+        }
+
+        public async Task<List<UserExtended>>Search(UserSearchParams parameters)
+        {
+            using (var api = _apiFactory.CreateVkApi())
+            {
+                var searchResult = await api.Users.SearchAsync(parameters);
+                return searchResult.Select(x=>new UserExtended(x)).ToList();
+            }
         }
     }
 }
