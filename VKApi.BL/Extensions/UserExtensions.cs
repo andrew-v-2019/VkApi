@@ -95,6 +95,11 @@ namespace VKApi.BL
             return user.Blacklisted || user.BlacklistedByMe;
         }
 
+        public static string GetDomainForUser(this User user)
+        {
+            return $"vk.com/{user.Domain}";
+        }
+
         public static UserExtended ToExtendedModel(this User u)
         {
             return new UserExtended(u);

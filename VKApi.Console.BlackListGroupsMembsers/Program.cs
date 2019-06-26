@@ -216,11 +216,13 @@ namespace VKApi.Console.Blacklister
             return listWithoutDeleted;
         }
 
+
+
         private static string ActionResultLogMessage(User u, bool result, int? counter = null, int? count = null,
             Exception ex = null)
         {
             var message = string.Empty;
-            var domain = $"vk.com/{u.Domain}";
+            var domain = u.GetDomainForUser();
             var timeInfoString = $" Time {DateTime.Now}.";
             var counterString = string.Empty;
             if (counter.HasValue && count.HasValue)
@@ -268,7 +270,6 @@ namespace VKApi.Console.Blacklister
                     }
                     catch (Exception e)
                     {
-                        
                         sleep = HandleException(e, u, counter, count, ref message);
                     }
 
@@ -298,7 +299,8 @@ namespace VKApi.Console.Blacklister
                 }
                 else
                 {
-                    message = e.Message.Trim();
+                    var domain = userThrowsException.GetDomainForUser();
+                    message = domain + " - " + e.Message.Trim();
                     timeToSleepAfterError = TimeSpan.FromSeconds(_secondsToSleepAfterOtherExceptions);
                 }
             }
