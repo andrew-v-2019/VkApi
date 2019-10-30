@@ -35,17 +35,39 @@ namespace VKApi.ChicksLiker
 
         private const string GroupName = "online_krsk24";// "vpispatrol";//"poisk_krsk";// "znakomstva_krasnoyarsk124";sexykrsk seksznakomstvadivnogorsk kras.znakomstva  rmes_krs  krasn25  len_oblstroy  krsk_vyb  krasnoyarsk_krk
 
-        private static string[] GroupNames = new[] { "online_krsk24", "poisk_krsk", "kras.znakomstva", "znakomstva_krasnoyarsk124", "krasn25", "krsk_vyb", "krasnoyarsk_krk" }; //{"poisk_krsk" "club143805992","public144259550", "kuni_krsk", "online_krsk24", "seksznakomstvadivnogorsk", "kras.znakomstva" };// "vpispatrol", "poisk_krsk", "znakomstva_krasnoyarsk124", "sexykrsk", "seksznakomstvadivnogorsk", "kras.znakomstva", "rmes_krs", "krasn25", "len_oblstroy", "krsk_vyb", "krasnoyarsk_krk" };
+        private static string[] _groupNames = new[] {
+            "online_krsk24", 
+            "poisk_krsk", 
+            "kras.znakomstva", 
+            "znakomstva_krasnoyarsk124", 
+            "krasn25", 
+            "krsk_vyb", 
+            "krasnoyarsk_krk", 
+            "motoparakrsk",
+            "dosuganet", 
+            "vpispatrol", 
+            "sprintkrsk", 
+            "znakomstvokrasnoyarsk", 
+            "krasznak0mstva", 
+            "your_krsk", 
+            "vpiskikrsk_24", 
+            "hidiv",
+            "public162869193",
+            "club181811049",
+            "znakomstva_dg",
+            "24kuni"
+            
+        };
 
         private const ulong PostsCountToAnalyze = 1000;
         private static readonly string[] Cities = { "krasnoyarsk", "divnogorsk" };
         private const int ProfilePhotosToLike = 2;
 
-        private const int MinAge = 20;
-        private const int MaxAge = 27;
+        private const int MinAge = 17;
+        private const int MaxAge = 29;
         private const int SkipRecentlyLikedProfilesPhotosCount = 1;
 
-        private const Strategy Strategy = ChicksLiker.Strategy.SearchResults;
+        private const Strategy Strategy = ChicksLiker.Strategy.PostsLikers;
 
 
         private static async Task<List<UserExtended>> GetUserIdsByStrategyAsync()
@@ -55,10 +77,10 @@ namespace VKApi.ChicksLiker
                 case Strategy.PostsLikers:
                     var posts = new List<VkNet.Model.Post>();
 
-                    GroupNames = GroupNames.Distinct().ToArray();
+                    _groupNames = _groupNames.Distinct().ToArray();
                     var likerIds = new List<long>();
 
-                    foreach (var name in GroupNames)
+                    foreach (var name in _groupNames)
                     {
                         var groupPosts = _groupService.GetPosts(name, PostsCountToAnalyze);
                         posts.AddRange(groupPosts);
@@ -66,13 +88,14 @@ namespace VKApi.ChicksLiker
                         {
                             var ownerId = post.OwnerId;
                             var postId = post.Id;
-                            if (ownerId.HasValue && postId.HasValue)
-                            {
-                                var likerIdsChunk = _likesService.GetUsersWhoLiked(ownerId.Value, post.Id.Value, LikeObjectType.Post);
-                                likerIds.AddRange(likerIdsChunk.Distinct());
-                                Console.Clear();
-                                Console.WriteLine($"user ids count: {likerIds.Count}");
-                            }
+
+                            if (!ownerId.HasValue || !postId.HasValue) 
+                                continue;
+
+                            var likerIdsChunk = _likesService.GetUsersWhoLiked(ownerId.Value, post.Id.Value, LikeObjectType.Post);
+                            likerIds.AddRange(likerIdsChunk.Distinct());
+                            Console.Clear();
+                            Console.WriteLine($"user ids count: {likerIds.Count}");
                         }
                     }
 
@@ -101,14 +124,15 @@ namespace VKApi.ChicksLiker
             {
                 AgeFrom = MinAge,
                 AgeTo = MaxAge,
-                Status = MaritalStatus.TheActiveSearch,             
+                Status = MaritalStatus.Single,
                 Sex = Sex.Female,
                 HasPhoto = true,
                 Sort = UserSort.ByRegDate,
                 Fields = GetFields(),
                 Count = 1000,
                 Country = 1,
-                City = 73
+                City = 73 //641
+                //Online = true
             };
 
             var users = await _userService.Search(searchParams);
@@ -126,6 +150,7 @@ namespace VKApi.ChicksLiker
             Console.Clear();
 
             Console.WriteLine("Get user ids...");
+
             var users = await GetUserIdsByStrategyAsync();
             Console.WriteLine($"User ids count is {users.Count}.");
 
@@ -225,7 +250,7 @@ namespace VKApi.ChicksLiker
         {
             var result = false;
 
-            int likedPhotosCounter = 0;
+            var likedPhotosCounter = 0;
             foreach (var profilePhoto in profilePhotos)
             {
                 if (profilePhoto.Likes.UserLikes)

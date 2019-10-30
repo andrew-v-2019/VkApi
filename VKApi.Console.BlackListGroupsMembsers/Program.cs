@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using VkNet;
 using VkNet.Enums;
 using VkNet.Enums.Filters;
@@ -11,6 +12,7 @@ using VKApi.BL.Interfaces;
 using VKApi.BL.Models;
 using VKApi.BL.Unity;
 using VKApi.Console.Blacklister.Extensions;
+using VkNet.Model.RequestParams;
 
 namespace VKApi.Console.Blacklister
 {
@@ -22,7 +24,7 @@ namespace VKApi.Console.Blacklister
 
         private static IUserService _userService;
 
-        private static IGroupSerice _groupSerice;
+        private static IGroupSerice _groupService;
 
         private static string _phrase;
         private static double _wait;
@@ -33,7 +35,7 @@ namespace VKApi.Console.Blacklister
         private static int _secondsToSleepAfterOtherExceptions = 1;
         private static int _hoursToSleepAfterFloodControl = 12;
 
-        private static bool _reverseTotalList = false;
+        private static bool _reverseTotalList;
 
         private static int _groupSearchCount = 1000;
 
@@ -44,7 +46,7 @@ namespace VKApi.Console.Blacklister
         private const int MinAge = 37;
         private const int MaxAge = 90;
 
-        private static readonly int _minutesToSleepInBackgroundWork = 5;
+        private const int MinutesToSleepInBackgroundWork = 5;
 
         private static void FillConfigurations()
         {
@@ -63,7 +65,7 @@ namespace VKApi.Console.Blacklister
             _groupSearchCount = 1000;
         }
 
-        private static void Main()
+        private static async Task Main()
         {
             var ps = Process.GetCurrentProcess();
             ps.PriorityClass = ProcessPriorityClass.RealTime;
@@ -74,7 +76,7 @@ namespace VKApi.Console.Blacklister
 
             FillConfigurations();
 
-            _groupSerice = ServiceInjector.Retrieve<IGroupSerice>();
+            _groupService = ServiceInjector.Retrieve<IGroupSerice>();
             _userService = ServiceInjector.Retrieve<IUserService>();
             _apiFactory = ServiceInjector.Retrieve<IVkApiFactory>();
 
@@ -91,62 +93,56 @@ namespace VKApi.Console.Blacklister
             BlackListUserList(totalUsersList);
 
             System.Console.WriteLine("Start collecting users for background work");
-            var blackListedUserIds = _userService.GetBannedIds().ToList().Distinct();
-            foreach (var blackListedUserId in blackListedUserIds)
+            var usersForBackgroundWork = await GetUsersForBackgroundWork();
+
+            using (var api = _apiFactory.CreateVkApi())
             {
-                System.Console.WriteLine($"Get friends for UserId = {blackListedUserId}");
+                foreach (var f in usersForBackgroundWork)
+                {
 
-                List<UserExtended> enemyFriends;
-                try
-                {
-                    enemyFriends = _userService.GetFriends(blackListedUserId)
-                        .Where(x => x.FromCity(_city))
-                        .ToList();
-                }
-                catch (Exception e)
-                {
-                    System.Console.WriteLine(e.Message);
-                    continue;
-                }
-
-                using (var api = _apiFactory.CreateVkApi())
-                {
-                    var counter = 1;
-                    foreach (var f in enemyFriends)
+                    var needBlackList = SatisfyBySecondAlgorithm(f);
+                    if (!needBlackList)
                     {
-
-                        var needBlackList = SatisfyBySecondAlgoritm(f);
-                        if (!needBlackList)
-                        {
-                            continue;
-                        }
-
-                        var message = string.Empty;
-
-                        TimeSpan sleep;
-                        try
-                        {
-                            var blackListResult = BlackListUser(f, api);
-                            sleep = blackListResult
-                                ? TimeSpan.FromMinutes(_minutesToSleepInBackgroundWork)
-                                : TimeSpan.FromSeconds(0);
-                            message = ActionResultLogMessage(f, blackListResult);
-                        }
-                        catch (Exception e)
-                        {
-                            sleep= HandleException(e,f,null,null, ref message);
-                        }
-
-                        counter++;
-
-                        System.Console.WriteLine(message);
-                        System.Threading.Thread.Sleep(sleep);
+                        continue;
                     }
+
+                    var message = string.Empty;
+
+                    TimeSpan sleep;
+                    try
+                    {
+                        var blackListResult = BlackListUser(f, api);
+                        sleep = blackListResult
+                            ? TimeSpan.FromMinutes(MinutesToSleepInBackgroundWork)
+                            : TimeSpan.FromSeconds(0);
+                        message = ActionResultLogMessage(f, blackListResult);
+                    }
+                    catch (Exception e)
+                    {
+                        sleep = HandleException(e, f, null, null, ref message);
+                    }
+
+                    System.Console.WriteLine(message);
+                    System.Threading.Thread.Sleep(sleep);
                 }
             }
         }
 
-        private static bool SatisfyBySecondAlgoritm(UserExtended user)
+        private static async Task<List<UserExtended>> GetUsersForBackgroundWork()
+        {
+            const int cityId = 641; //ToDo: refactor this shit
+            var param = new UserSearchParams()
+            {
+                Sex = Sex.Male,
+                City = cityId,
+                Sort = UserSort.ByRegDate
+            };
+            var res = await _userService.Search(param);
+
+            return res;
+        }
+
+        private static bool SatisfyBySecondAlgorithm(UserExtended user)
         {
             if (user.IsFriend.HasValue && user.IsFriend.Value)
             {
@@ -310,7 +306,7 @@ namespace VKApi.Console.Blacklister
 
         private static List<UserExtended> GetGroupsMembersByPhrase()
         {
-            var groups = _groupSerice.GetGroupsBySearchPhrase(_phrase, _groupSearchCount);
+            var groups = _groupService.GetGroupsBySearchPhrase(_phrase, _groupSearchCount);
             var badUsers = new List<UserExtended>();
 
             System.Console.WriteLine($"Groups count is {groups.Count}...");
@@ -318,7 +314,12 @@ namespace VKApi.Console.Blacklister
             foreach (var g in groups)
             {
                 System.Console.WriteLine($"Getting memebers for group {g.Id} (vk.com/club{g.Id})");
-                var groupBadUsers = _groupSerice.GetGroupMembers(g.Id.ToString(), GetFields()).ToList();
+                var groupBadUsers = _groupService.GetGroupMembers(g.Id.ToString(), GetFields()).ToList();
+                var vera = groupBadUsers.FirstOrDefault(x=>x.Domain.Equals("vera_smolenskaya"));
+                if (vera != null)
+                {
+                    string a = "";
+                }
                 badUsers.AddRange(groupBadUsers);
             }
 
