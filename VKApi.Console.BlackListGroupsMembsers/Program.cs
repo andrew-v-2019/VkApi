@@ -43,7 +43,7 @@ namespace VKApi.Console.Blacklister
 
         private static bool _excludeDeletedUsers;
 
-        private const int MinAge = 37;
+        private const int MinAge = 17;
         private const int MaxAge = 90;
 
         private const int MinutesToSleepInBackgroundWork = 5;
@@ -130,16 +130,29 @@ namespace VKApi.Console.Blacklister
 
         private static async Task<List<UserExtended>> GetUsersForBackgroundWork()
         {
-            const int cityId = 641; //ToDo: refactor this shit
+            const int cityId = 73; //ToDo: refactor this shit
             var param = new UserSearchParams()
             {
                 Sex = Sex.Male,
                 City = cityId,
-                Sort = UserSort.ByRegDate
+                Sort = UserSort.ByRegDate,
+                Fields = GetProfileFields(),
+                Count = 1000,
+                AgeFrom = MinAge,
+                AgeTo = MaxAge
+                
             };
             var res = await _userService.Search(param);
-
+            res = res.Where(x => !x.BlackListed()).Select(x => x).ToList();
             return res;
+        }
+
+        private static ProfileFields GetProfileFields()
+        {
+            return ProfileFields.BirthDate | ProfileFields.LastSeen | ProfileFields.City | ProfileFields.Sex |
+                   ProfileFields.Blacklisted | ProfileFields.BlacklistedByMe | ProfileFields.IsFriend |
+                   ProfileFields.PhotoId | ProfileFields.CommonCount | ProfileFields.Relatives |
+                   ProfileFields.Relation | ProfileFields.Relatives | ProfileFields.Domain;
         }
 
         private static bool SatisfyBySecondAlgorithm(UserExtended user)
