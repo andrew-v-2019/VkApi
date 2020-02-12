@@ -13,6 +13,7 @@ using VkNet.Model.Attachments;
 using VkNet;
 using VkNet.Model.RequestParams;
 using System.Threading.Tasks;
+using VkNet.Model;
 
 namespace VKApi.ChicksLiker
 {
@@ -75,7 +76,7 @@ namespace VKApi.ChicksLiker
             switch (Strategy)
             {
                 case Strategy.PostsLikers:
-                    var posts = new List<VkNet.Model.Post>();
+                    var posts = new List<Post>();
 
                     _groupNames = _groupNames.Distinct().ToArray();
                     var likerIds = new List<long>();

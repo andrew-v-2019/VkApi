@@ -4,10 +4,12 @@ using VkNet.Enums.Filters;
 using VkNet.Model;
 using VKApi.BL.Interfaces;
 using VKApi.BL.Models;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace VKApi.BL
 {
-    public class VkApiFactory: IVkApiFactory
+    public class VkApiFactory : IVkApiFactory
     {
         private readonly IConfigurationProvider _configurationProvider;
 
@@ -17,49 +19,77 @@ namespace VKApi.BL
         }
 
         private VkApi _api;
+        private VkApi _fakeApi;
 
-        public VkApi CreateVkApi()
+        public VkApi CreateVkApi(bool fake = false)
         {
-            if (_api != null) 
+            if (_api != null && !fake)
             {
                 return _api;
             }
 
-            _api = new VkApi();
-
-            _api.Authorize(new ApiAuthParams
+            if (_fakeApi != null && fake)
             {
-                ApplicationId =
-                    Convert.ToUInt64(_configurationProvider.GetConfig(nameof(ApiAuthParams.ApplicationId))),
-                Login = _configurationProvider.GetConfig(nameof(ApiAuthParams.Login)),
-                Password = _configurationProvider.GetConfig(nameof(ApiAuthParams.Password)),
-                Settings = Settings.Wall,
-               // AccessToken = "6e3813426e3813426e381342086e51042366e386e3813423246640d0f9ba0d4bdf02a8f",
-                
-            });
+                return _fakeApi;
+            }
 
-            return _api;
+            var api = new VkApi();
+            var account = CreateAccount(fake);
+
+            if (!fake)
+            {
+                _api = api;
+            }
+            else
+            {
+                _fakeApi = api;
+            }
+            api.Authorize(GetAuthParams(account));
+            return api;
         }
 
-        public VkApi CreateVkApi(Account account)
+        private ApiAuthParams GetAuthParams(Account acc)
         {
-            if (_api != null)
-            {
-                return _api;
-            }
-
-            _api = new VkApi();
-
-            _api.Authorize(new ApiAuthParams
+            var p = new ApiAuthParams()
             {
                 ApplicationId =
-                    Convert.ToUInt64(account.ApplicationId),
-                Login = account.Login,
-                Password = account.Password,
-                Settings = Settings.All
-            });
+                    Convert.ToUInt64(acc.ApplicationId),
+                Login = acc.Login,
+                Password = acc.Password,
+                Settings = Settings.Wall,
+                
+                
+            };
+            return p;
+        }
 
-            return _api;
+        private Account CreateAccount(bool fake = false)
+        {
+            var settingToRead = "Account";
+            if (fake)
+            {
+                settingToRead = "FakeAccount";
+            }
+            var dictionary = GetCredentials(settingToRead);
+            var acc = CreateAccountFormDictionary(dictionary);
+            return acc;
+        }
+
+        private Account CreateAccountFormDictionary(Dictionary<string, string> dictionary)
+        {
+            var acc = new Account()
+            {
+                ApplicationId = dictionary[nameof(Account.ApplicationId)],
+                Login = dictionary[nameof(Account.Login)],
+                Password = dictionary[nameof(Account.Password)]
+            };
+
+            return acc;
+        }
+
+        private Dictionary<string, string> GetCredentials(string name)
+        {
+            return _configurationProvider.GetConfig(name).Split(',').ToDictionary(k => k.Split(':').First(), v => v.Split(':').Last());
         }
     }
 }

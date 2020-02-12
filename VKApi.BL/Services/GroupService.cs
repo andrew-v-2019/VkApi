@@ -9,7 +9,6 @@ using VkNet.Model.RequestParams;
 using VKApi.BL.Interfaces;
 using VKApi.BL.Models;
 using VkNet.Model.Attachments;
-using System.Collections.ObjectModel;
 
 namespace VKApi.BL.Services
 {
@@ -123,16 +122,7 @@ namespace VKApi.BL.Services
                 Sort = _getMemebersSort,
                 Fields = fields,
             };
-            try
-            {
-                usersChunk = api.Groups.GetMembers(param).ToList();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                var oneByOneList = GetGroupMembersOneByOne(offset, Step, groupName, api, null);
-                return oneByOneList;
-            }
+            usersChunk = api.Groups.GetMembers(param).ToList();
 
             var model = usersChunk.Select(x => x.ToExtendedModel()).ToList();
             return model;

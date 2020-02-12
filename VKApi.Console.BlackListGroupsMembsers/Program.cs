@@ -53,7 +53,7 @@ namespace VKApi.Console.Blacklister
             _excludeDeletedUsers = true;
             _phrase = _configurationProvider.GetConfig("SearchPhrase");
             _reverseTotalList = _configurationProvider.GetConfig("reverseTotalList", false);
-            _wait = _configurationProvider.GetConfig("Wait", 23); 
+            _wait = _configurationProvider.GetConfig("Wait", 23);
             _city = _configurationProvider.GetConfig("City");
             _idsToExclude = _configurationProvider.GetConfig("idsToExclude", _idsToExclude);
 
@@ -140,7 +140,7 @@ namespace VKApi.Console.Blacklister
                 Count = 1000,
                 AgeFrom = MinAge,
                 AgeTo = MaxAge
-                
+
             };
             var res = await _userService.Search(param);
             res = res.Where(x => !x.BlackListed()).Select(x => x).ToList();
@@ -171,7 +171,7 @@ namespace VKApi.Console.Blacklister
 
         private static UsersFields GetFields()
         {
-            return UsersFields.LastSeen | UsersFields.City | UsersFields.Domain ;
+            return UsersFields.LastSeen | UsersFields.City | UsersFields.Domain;
         }
 
         private static List<UserExtended> PrepareUserList(IEnumerable<UserExtended> badUsers)
@@ -327,18 +327,24 @@ namespace VKApi.Console.Blacklister
             foreach (var g in groups)
             {
                 System.Console.WriteLine($"Getting memebers for group {g.Id} (vk.com/club{g.Id})");
-                var groupBadUsers = _groupService.GetGroupMembers(g.Id.ToString(), GetFields()).ToList();
-                var vera = groupBadUsers.FirstOrDefault(x=>x.Domain.Equals("vera_smolenskaya"));
-                if (vera != null)
+                try
                 {
-                    string a = "";
+                    var groupBadUsers = _groupService.GetGroupMembers(g.Id.ToString(), GetFields()).ToList();
+                    badUsers.AddRange(groupBadUsers);
                 }
-                badUsers.AddRange(groupBadUsers);
+                catch (Exception e)
+                {
+                    if (e.DoesGroupHideMembers())
+                    {
+                        System.Console.WriteLine($"vk.com/club{g.Id} - hide memmbers");
+                    }
+                }
+
             }
 
             return badUsers.Distinct().ToList();
         }
 
-     
+
     }
 }

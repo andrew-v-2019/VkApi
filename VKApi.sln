@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26403.7
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VKApi.BL", "VKApi.BL\VKApi.BL.csproj", "{0CA4F9AC-AC26-4C74-9A94-C7CC6EBB46B1}"
 EndProject
@@ -12,6 +12,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VkApi.WpfApp", "WpfApp1\VkApi.WpfApp.csproj", "{2A2A1016-76E4-4BD6-8B43-BF9CDD7FB56B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VkApi.Models", "VkApi.Models\VkApi.Models.csproj", "{DC4B05EE-7C30-441E-ACD0-0ED8B01B7E93}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8CF0749E-34F0-4326-B4FE-19ADBF412B43}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
