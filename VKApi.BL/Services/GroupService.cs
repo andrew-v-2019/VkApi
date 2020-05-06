@@ -80,7 +80,7 @@ namespace VKApi.BL.Services
 
         public List<Group> GetGroupsBySearchPhrase(string searchPhrase, int count = 1000)
         {
-            using (var api = _apiFactory.CreateVkApi())
+            using (var api = _apiFactory.CreateVkApi(true))
             {
                 var p = new GroupsSearchParams() { Query = searchPhrase, Count = count };
                 var searchRes = api.Groups.Search(p);
@@ -97,7 +97,7 @@ namespace VKApi.BL.Services
                 fields = UsersFields.All;
             }
 
-            using (var api = _apiFactory.CreateVkApi())
+            using (var api = _apiFactory.CreateVkApi(true))
             {
                 var count2 = count ?? GetGroupMembersCount(groupName, api);
                 var users = new List<UserExtended>();

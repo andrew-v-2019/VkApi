@@ -95,7 +95,7 @@ namespace VKApi.BL.Services
                 int chunkCount;
                 do
                 {
-                    var chunk = api.Account.GetBanned(offset, step).Select(x => x.ToExtendedModel()).ToList();
+                    var chunk = api.Account.GetBanned(offset, step).Profiles.Select(x => x.ToExtendedModel()).ToList();
                     users.AddRange(chunk);
                     offset = offset + step;
                     chunkCount = chunk.Count;

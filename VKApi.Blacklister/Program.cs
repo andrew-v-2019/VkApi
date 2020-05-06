@@ -336,8 +336,15 @@ namespace VKApi.Console.Blacklister
                 {
                     if (e.DoesGroupHideMembers())
                     {
-                        System.Console.WriteLine($"vk.com/club{g.Id} - hide memmbers");
-                    }
+                        System.Console.WriteLine($"vk.com/club{g.Id} - hides memmbers");
+
+                        using (var api = _apiFactory.CreateVkApi(true))
+                        {
+                            ulong wallPostsCount = 1000;
+                            var wallPosts = _groupService.GetPostsByGroupId(g.Id, api, wallPostsCount);
+                        }
+                    }               
+
                 }
 
             }

@@ -37,5 +37,5 @@ packages/
 /.idea/.idea.VKApi/.idea/vcs.xml
 /.idea/.idea.VKApi/.idea/workspace.xml
 /.idea/.idea.VKApi/riderModule.iml
-/VKApi.Console.BlackListGroupsMembsers/App.config
-/VKApi.Console/App.config
+/VKApi.Blacklister/PrivateSettings.config
+/VKApi.LikeClicker/PrivateSettings.config
