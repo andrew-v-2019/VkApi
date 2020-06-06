@@ -154,8 +154,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\GroupExtensions.cs" />
+    <Compile Include="Interfaces\ICommentsService.cs" />
     <Compile Include="Models\Account.cs" />
     <Compile Include="Models\UserExtended.cs" />
+    <Compile Include="Services\CommentsService.cs" />
     <Compile Include="Services\PhotoService.cs" />
     <Compile Include="ConfigurationProvider.cs" />
     <Compile Include="Services\GroupService.cs" />

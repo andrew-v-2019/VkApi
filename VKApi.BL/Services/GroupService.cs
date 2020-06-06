@@ -20,10 +20,52 @@ namespace VKApi.BL.Services
 
         private readonly IVkApiFactory _apiFactory;
 
+
         public GroupService(IVkApiFactory apiFactory)
         {
             _apiFactory = apiFactory;
         }
+
+        public List<Post> GetPostsByGroupId(long groupId, VkApi api, DateTime minDate)
+        {
+            var posts = new List<Post>();
+            ulong step = 100;
+            ulong offset = 0;
+            ulong totalCount = 0;
+            DateTime? lastPostDate = null;
+            do
+            {
+                try
+                {
+                    var param = new WallGetParams()
+                    {
+                        OwnerId = -groupId,
+                        Filter = WallFilter.Owner,
+                        Count = step,
+                        Offset = offset,
+                    };
+                    var getResult = api.Wall.Get(param);
+                    var postsChunk = getResult.WallPosts.Select(p => p).ToList();
+                    posts.AddRange(postsChunk);
+                    offset = offset + step;
+                    param.Offset = offset;
+                    totalCount = getResult.TotalCount;
+                    Console.Write("\r{0}  ", $"Total posts count {posts.Count}.");
+                    var lastPost = posts.OrderByDescending(p => p.Date).Last();
+                    lastPostDate = lastPost.Date;
+                }
+                catch
+                {
+                    offset += 1;
+                }
+            } while (offset < totalCount && lastPostDate > minDate);
+
+            var orderredPosts = posts
+                .OrderByDescending(p => p.Date)
+                .ToList();
+            return orderredPosts;
+        }
+
 
         public List<Post> GetPostsByGroupId(long groupId, VkApi api, ulong? count = null)
         {
@@ -168,7 +210,7 @@ namespace VKApi.BL.Services
 
                 return res.MembersCount.GetValueOrDefault();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return 0;
             }

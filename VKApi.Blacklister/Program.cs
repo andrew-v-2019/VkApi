@@ -13,6 +13,9 @@ using VKApi.BL.Models;
 using VKApi.BL.Unity;
 using VKApi.Console.Blacklister.Extensions;
 using VkNet.Model.RequestParams;
+using VKApi.BL.Services;
+using VkNet.Enums.SafetyEnums;
+using System.Globalization;
 
 namespace VKApi.Console.Blacklister
 {
@@ -25,6 +28,8 @@ namespace VKApi.Console.Blacklister
         private static IUserService _userService;
 
         private static IGroupSerice _groupService;
+
+        private static ILikesService _likeService;
 
         private static string _phrase;
         private static double _wait;
@@ -79,6 +84,7 @@ namespace VKApi.Console.Blacklister
             _groupService = ServiceInjector.Retrieve<IGroupSerice>();
             _userService = ServiceInjector.Retrieve<IUserService>();
             _apiFactory = ServiceInjector.Retrieve<IVkApiFactory>();
+            _likeService = ServiceInjector.Retrieve<ILikesService>();
 
             System.Console.Clear();
 
@@ -337,13 +343,8 @@ namespace VKApi.Console.Blacklister
                     if (e.DoesGroupHideMembers())
                     {
                         System.Console.WriteLine($"vk.com/club{g.Id} - hides memmbers");
-
-                        using (var api = _apiFactory.CreateVkApi(true))
-                        {
-                            ulong wallPostsCount = 1000;
-                            var wallPosts = _groupService.GetPostsByGroupId(g.Id, api, wallPostsCount);
-                        }
-                    }               
+                        GetGroupsMembersInHiddenGroup(g.Id);
+                    }
 
                 }
 
@@ -351,6 +352,28 @@ namespace VKApi.Console.Blacklister
 
             return badUsers.Distinct().ToList();
         }
+
+
+        private static List<UserExtended> GetGroupsMembersInHiddenGroup(long groupId)
+        {
+            var userIds = new List<long>();
+            using (var api = _apiFactory.CreateVkApi(true))
+            {
+               var minDateConfig = _configurationProvider.GetConfig("minDateForPostsInHiddenGroups");
+               var minDate = DateTime.ParseExact(minDateConfig, "d", CultureInfo.InvariantCulture);
+               var wallPosts = _groupService.GetPostsByGroupId(groupId, api, minDate);
+
+                foreach (var wallPost in wallPosts)
+                {
+                    var likerIds = _likeService.GetUsersWhoLiked(wallPost.OwnerId.Value, wallPost.Id.Value, LikeObjectType.Post, api);
+                    userIds.AddRange(likerIds);
+                }
+            }
+
+
+            return new List<UserExtended>();
+        }
+
 
 
     }
