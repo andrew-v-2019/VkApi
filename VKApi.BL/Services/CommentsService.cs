@@ -11,9 +11,15 @@ namespace VKApi.BL.Services
     public class CommentsService : ICommentsService
     {
 
-        public List<Comment> GetComments(long ownerId, long postId, VkApi api)
+        public List<Comment> GetComments(long ownerId, long postId, VkApi api, ref List<User> profiles)
         {
-            var step = 100;
+            //https://vknet.github.io/vk/wall/getComments/
+            const int step = 100;
+
+            if (postId == 483997)
+            {
+
+            }
 
             var comments = new List<Comment>();
             long offset = 0;
@@ -22,32 +28,35 @@ namespace VKApi.BL.Services
             {
                 try
                 {
-                    var param = new WallGetCommentsParams()
+                    var param = new WallGetCommentsParams
                     {
                         OwnerId = ownerId,
                         PostId = postId,
                         Count = step,
                         Offset = offset,
+                        NeedLikes = true,
+                        Extended = true,
+
+                        
                     };
                     var getResult = api.Wall.GetComments(param);
+                    profiles = getResult.Profiles.ToList();
                     var commentsChunk = getResult.Items.Select(p => p).ToList();
                     comments.AddRange(commentsChunk);
-                    offset = offset + step;
+                    offset += step;
                     param.Offset = offset;
                     totalCount = getResult.Count;
-                    Console.Clear();
-                    Console.WriteLine($"Total posts count {comments.Count}.");
                 }
-                catch
+                catch(Exception e)
                 {
-                    offset = offset + 1;
+                    offset += 1;
                 }
             } while (offset < totalCount);
 
-            var orderredComments = comments.OrderByDescending(p => p.Date)
-                .ThenByDescending(p => p.Likes.Count)
+            var orderedComments = comments.OrderByDescending(p => p.Date)
+                .ThenByDescending(p =>p.Likes?.Count)
                 .ToList();
-            return orderredComments;
+            return orderedComments;
         }
     }
 }

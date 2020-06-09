@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
+using VKApi.BL.Models;
 using VkNet.Enums;
 using VkNet.Enums.SafetyEnums;
 using VkNet.Model;
-using VKApi.BL.Models;
 
-namespace VKApi.BL
+namespace VKApi.BL.Extensions
 {
     public static class UserExtensions
     {

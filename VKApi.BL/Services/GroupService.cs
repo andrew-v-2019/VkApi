@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using VKApi.BL.Extensions;
 using VkNet;
 using VkNet.Enums.Filters;
 using VkNet.Enums.SafetyEnums;
@@ -15,7 +16,7 @@ namespace VKApi.BL.Services
     public class GroupService : IGroupSerice
     {
 
-        private readonly GroupsSort _getMemebersSort = GroupsSort.IdDesc;
+        private readonly GroupsSort _getMembersSort = GroupsSort.IdDesc;
         private const int Step = 1000;
 
         private readonly IVkApiFactory _apiFactory;
@@ -29,7 +30,7 @@ namespace VKApi.BL.Services
         public List<Post> GetPostsByGroupId(long groupId, VkApi api, DateTime minDate)
         {
             var posts = new List<Post>();
-            ulong step = 100;
+            const ulong step = 100;
             ulong offset = 0;
             ulong totalCount = 0;
             DateTime? lastPostDate = null;
@@ -37,7 +38,7 @@ namespace VKApi.BL.Services
             {
                 try
                 {
-                    var param = new WallGetParams()
+                    var param = new WallGetParams
                     {
                         OwnerId = -groupId,
                         Filter = WallFilter.Owner,
@@ -47,7 +48,7 @@ namespace VKApi.BL.Services
                     var getResult = api.Wall.Get(param);
                     var postsChunk = getResult.WallPosts.Select(p => p).ToList();
                     posts.AddRange(postsChunk);
-                    offset = offset + step;
+                    offset += step;
                     param.Offset = offset;
                     totalCount = getResult.TotalCount;
                     Console.Write("\r{0}  ", $"Total posts count {posts.Count}.");
@@ -60,10 +61,10 @@ namespace VKApi.BL.Services
                 }
             } while (offset < totalCount && lastPostDate > minDate);
 
-            var orderredPosts = posts
+            var orderedPosts = posts
                 .OrderByDescending(p => p.Date)
                 .ToList();
-            return orderredPosts;
+            return orderedPosts;
         }
 
 
@@ -161,7 +162,7 @@ namespace VKApi.BL.Services
             {
                 Offset = offset,
                 GroupId = groupName,
-                Sort = _getMemebersSort,
+                Sort = _getMembersSort,
                 Fields = fields,
             };
             usersChunk = api.Groups.GetMembers(param).ToList();
@@ -180,7 +181,7 @@ namespace VKApi.BL.Services
                 {
                     Offset = i,
                     GroupId = groupName,
-                    Sort = _getMemebersSort,
+                    Sort = _getMembersSort,
                     Fields = fields,
                     Count = 1
                 };

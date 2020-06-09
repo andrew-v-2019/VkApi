@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using VKApi.BL.Extensions;
 using VkNet.Model;
 
 namespace VKApi.BL.Models

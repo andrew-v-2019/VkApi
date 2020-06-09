@@ -1,6 +1,6 @@
-﻿namespace VKApi.ChicksLiker
+﻿namespace VkApi.Models
 {
-    public enum Strategy
+    public enum LikeClickerStrategy
     {
         GroupMembers,
         PostsLikers,

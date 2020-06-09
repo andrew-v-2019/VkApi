@@ -94,9 +94,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="LikeClickerStrategy.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\VKApi.Console\VKApi.LikeClicker.csproj">
+    <ProjectReference Include="..\VKApi.LikeClicker\VKApi.LikeClicker.csproj">
       <Project>{125896FB-E046-420B-BED5-E6D988605D91}</Project>
       <Name>VKApi.LikeClicker</Name>
     </ProjectReference>

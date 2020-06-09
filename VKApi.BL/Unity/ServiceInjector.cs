@@ -29,6 +29,10 @@ namespace VKApi.BL.Unity
             Register<ILikesService, LikesService>();
             Register<IUserService, UserService>();
             Register<IPhotosService, PhotosService>();
+            Register<ICommentsService, CommentsService>();
+            Register<IMessagesService, MessagesService>();
+            Register<ICitiesService, CitiesService>();
+            Register<ILikeClickerService, LikeClickerService>();
         }
     }
 }

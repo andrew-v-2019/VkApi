@@ -7,6 +7,7 @@ using VkNet.Model.RequestParams;
 using VKApi.BL.Interfaces;
 using VKApi.BL.Models;
 using System.Threading.Tasks;
+using VKApi.BL.Extensions;
 
 namespace VKApi.BL.Services
 {

@@ -2,144 +2,64 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using VkNet.Enums;
-using VkNet.Enums.Filters;
-using VkNet.Enums.SafetyEnums;
-using VKApi.BL;
+using System.Threading.Tasks;
 using VKApi.BL.Interfaces;
 using VKApi.BL.Models;
+using VKApi.BL.Models.Users;
 using VKApi.BL.Unity;
-using VkNet.Model.Attachments;
 using VkNet;
-using VkNet.Model.RequestParams;
-using System.Threading.Tasks;
-using VkNet.Model;
+using VkNet.Enums.SafetyEnums;
+using VkNet.Model.Attachments;
 
-namespace VKApi.ChicksLiker
+namespace VKApi.LikeClicker
 {
     public static class Program
     {
-        private static IGroupSerice _groupService;
         private static ILikesService _likesService;
-        private static IUserService _userService;
         private static IVkApiFactory _apiFactory;
         private static IPhotosService _photoService;
+        private static IConfigurationProvider _configurationProvider;
+        private static ILikeClickerService _likeClickerService;
 
         private static void InjectServices()
         {
-            _groupService = ServiceInjector.Retrieve<IGroupSerice>();
             _likesService = ServiceInjector.Retrieve<ILikesService>();
-            _userService = ServiceInjector.Retrieve<IUserService>();
             _apiFactory = ServiceInjector.Retrieve<IVkApiFactory>();
             _photoService = ServiceInjector.Retrieve<IPhotosService>();
+            _configurationProvider = ServiceInjector.Retrieve<IConfigurationProvider>();
+            _likeClickerService = ServiceInjector.Retrieve<ILikeClickerService>();
         }
 
-        private const string GroupName = "online_krsk24";// "vpispatrol";//"poisk_krsk";// "znakomstva_krasnoyarsk124";sexykrsk seksznakomstvadivnogorsk kras.znakomstva  rmes_krs  krasn25  len_oblstroy  krsk_vyb  krasnoyarsk_krk
+        private static string _groupName;
 
-        private static string[] _groupNames = new[] {
-            "online_krsk24", 
-            "poisk_krsk", 
-            "kras.znakomstva", 
-            "znakomstva_krasnoyarsk124", 
-            "krasn25", 
-            "krsk_vyb", 
-            "krasnoyarsk_krk", 
-            "motoparakrsk",
-            "dosuganet", 
-            "vpispatrol", 
-            "sprintkrsk", 
-            "znakomstvokrasnoyarsk", 
-            "krasznak0mstva", 
-            "your_krsk", 
-            "vpiskikrsk_24", 
-            "hidiv",
-            "public162869193",
-            "club181811049",
-            "znakomstva_dg",
-            "24kuni"
-            
-        };
+        private static string[] _groupNames;
 
-        private const ulong PostsCountToAnalyze = 1000;
-        private static readonly string[] Cities = { "krasnoyarsk", "divnogorsk" };
-        private const int ProfilePhotosToLike = 2;
+        private static ulong _postsCountToAnalyze;
+        private static int _profilePhotosToLike;
 
-        private const int MinAge = 17;
-        private const int MaxAge = 29;
-        private const int SkipRecentlyLikedProfilesPhotosCount = 1;
+        private static int _minAge;
+        private static int _maxAge;
+        private static int _skipRecentlyLikedProfilesPhotosCount = 1;
 
-        private const Strategy Strategy = ChicksLiker.Strategy.PostsLikers;
+        private static int[] _cityIds;
+        private static int _cityId;
 
+        private static LikeClickerStrategy _strategy;
 
-        private static async Task<List<UserExtended>> GetUserIdsByStrategyAsync()
+        private static void FillConfigurations()
         {
-            switch (Strategy)
-            {
-                case Strategy.PostsLikers:
-                    var posts = new List<Post>();
-
-                    _groupNames = _groupNames.Distinct().ToArray();
-                    var likerIds = new List<long>();
-
-                    foreach (var name in _groupNames)
-                    {
-                        var groupPosts = _groupService.GetPosts(name, PostsCountToAnalyze);
-                        posts.AddRange(groupPosts);
-                        foreach (var post in groupPosts)
-                        {
-                            var ownerId = post.OwnerId;
-                            var postId = post.Id;
-
-                            if (!ownerId.HasValue || !postId.HasValue) 
-                                continue;
-
-                            var likerIdsChunk = _likesService.GetUsersWhoLiked(ownerId.Value, post.Id.Value, LikeObjectType.Post);
-                            likerIds.AddRange(likerIdsChunk.Distinct());
-                            Console.Clear();
-                            Console.WriteLine($"user ids count: {likerIds.Count}");
-                        }
-                    }
-
-                    likerIds = likerIds.Distinct().ToList();
-                    Console.WriteLine("Get user by ids");
-                    var chunk = _userService.GetUsersByIds(likerIds);
-                    return chunk;
-                case Strategy.GroupMembers:
-                    var group = _groupService.GetByName(GroupName);
-                    var members = _groupService.GetGroupMembers(group.Id.ToString(), UsersFields.Domain);
-                    var fields = GetFields();
-                    members = _userService.GetUsersByIds(members.Select(x => x.Id).ToList(), fields).Distinct().ToList();
-                    return members;
-
-                case Strategy.SearchResults:
-                    var searchResults = await SearchUsers();
-                    return searchResults;
-            }
-
-            return new List<UserExtended>();
+            _groupName = _configurationProvider.GetConfig("GroupName");
+            _groupNames = _configurationProvider.GetConfig("reverseTotalList", _groupNames);
+            _postsCountToAnalyze = (ulong) _configurationProvider.GetConfig("PostsCountToAnalyze", 100);
+            _profilePhotosToLike = _configurationProvider.GetConfig("ProfilePhotosToLike", 2);
+            _minAge = _configurationProvider.GetConfig("MinAge", 17);
+            _maxAge = _configurationProvider.GetConfig("MaxAge", 29);
+            _skipRecentlyLikedProfilesPhotosCount =
+                _configurationProvider.GetConfig("SkipRecentlyLikedProfilesPhotosCount ", 1);
+            _cityIds = _configurationProvider.GetConfig("CityIds ", _cityIds);
+            _strategy = _configurationProvider.GetConfig("Strategy ", _strategy);
+            _cityId = _configurationProvider.GetConfig("CityId", 73);
         }
-
-        private static async Task<List<UserExtended>> SearchUsers()
-        {
-            var searchParams = new UserSearchParams()
-            {
-                AgeFrom = MinAge,
-                AgeTo = MaxAge,
-                Status = MaritalStatus.Single,
-                Sex = Sex.Female,
-                HasPhoto = true,
-                Sort = UserSort.ByRegDate,
-                Fields = GetFields(),
-                Count = 1000,
-                Country = 1,
-                City = 73 //641
-                //Online = true
-            };
-
-            var users = await _userService.Search(searchParams);
-            return users;
-        }
-
 
         private static async Task Main()
         {
@@ -151,21 +71,13 @@ namespace VKApi.ChicksLiker
             Console.Clear();
 
             Console.WriteLine("Get user ids...");
+            FillConfigurations();
 
-            var users = await GetUserIdsByStrategyAsync();
-            Console.WriteLine($"User ids count is {users.Count}.");
+            var filteredUsers = await _likeClickerService.GetUserIdsByStrategyAsync(_strategy, _postsCountToAnalyze,
+                _groupNames, _groupName, new AgeRange(_maxAge, _minAge), _cityId, _cityIds);
 
             using (var api = _apiFactory.CreateVkApi())
             {
-                var filteredUsers = users
-                    .Where(ShouldLike)
-                    .Select(x => x)
-                    .OrderBy(x => x.HasChildrens)
-                    .ThenBy(u => u.Age ?? 99)
-                    .ThenByDescending(x => x.LastActivityDate)
-                    .ToList();
-
-                Console.WriteLine($"Filtered users count is {filteredUsers.Count}.");
 
                 var counter = 0;
                 var count = filteredUsers.Count - 1;
@@ -177,8 +89,6 @@ namespace VKApi.ChicksLiker
                     }
 
                     var user = filteredUsers[counter];
-
-
 
                     var wait = (counter % 2 > 0) ? 3 : 4;
                     if (user.Age % 2 > 0)
@@ -223,9 +133,9 @@ namespace VKApi.ChicksLiker
 
         private static bool SkipRecentlyLiked(List<Photo> profilePhotos)
         {
-            var recentliLikedCount = 0;
+            var recentlyLikedCount = 0;
 
-            if (SkipRecentlyLikedProfilesPhotosCount <= 0)
+            if (_skipRecentlyLikedProfilesPhotosCount <= 0)
             {
                 return false;
             }
@@ -235,9 +145,9 @@ namespace VKApi.ChicksLiker
             {
                 if (photo.Likes.UserLikes)
                 {
-                    recentliLikedCount++;
+                    recentlyLikedCount++;
                 }
-                if (recentliLikedCount >= SkipRecentlyLikedProfilesPhotosCount)
+                if (recentlyLikedCount >= _skipRecentlyLikedProfilesPhotosCount)
                 {
                     skip = true;
                     break;
@@ -265,7 +175,7 @@ namespace VKApi.ChicksLiker
                         api);
                     likedPhotosCounter++;
                 }
-                if (likedPhotosCounter >= ProfilePhotosToLike)
+                if (likedPhotosCounter >= _profilePhotosToLike)
                 {
                     break;
                 }
@@ -274,56 +184,5 @@ namespace VKApi.ChicksLiker
             return result;
         }
 
-        private static ProfileFields GetFields()
-        {
-            return ProfileFields.BirthDate | ProfileFields.LastSeen | ProfileFields.City | ProfileFields.Sex |
-                   ProfileFields.Blacklisted | ProfileFields.BlacklistedByMe | ProfileFields.IsFriend |
-                   ProfileFields.PhotoId | ProfileFields.CommonCount | ProfileFields.Relatives |
-                   ProfileFields.Relation | ProfileFields.Relatives | ProfileFields.Domain;
-        }
-
-        private static bool ShouldLike(UserExtended user)
-        {
-            if (!user.IsAgeBetween(MinAge, MaxAge))
-            {
-                return false;
-            }
-
-            if (user.HasBeenOfflineMoreThanDays(2))
-            {
-                return false;
-            }
-
-            if (!user.FromCity(Cities))
-            {
-                return false;
-            }
-            if (user.Sex != Sex.Female)
-            {
-                return false;
-            }
-
-            if (user.BlackListed())
-            {
-                return false;
-            }
-
-            if (user.IsFriend.HasValue && user.IsFriend == true)
-            {
-                return false;
-            }
-
-            if (!user.IsSingle())
-            {
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(user.PhotoId))
-            {
-                return false;
-            }
-
-            return user.CommonCount == 0 || !user.CommonCount.HasValue;
-        }
     }
 }

@@ -13,9 +13,10 @@ using VKApi.BL.Models;
 using VKApi.BL.Unity;
 using VKApi.Console.Blacklister.Extensions;
 using VkNet.Model.RequestParams;
-using VKApi.BL.Services;
 using VkNet.Enums.SafetyEnums;
 using System.Globalization;
+using VKApi.BL.Extensions;
+using VKApi.BL.Models.Users;
 
 namespace VKApi.Console.Blacklister
 {
@@ -31,9 +32,15 @@ namespace VKApi.Console.Blacklister
 
         private static ILikesService _likeService;
 
+        private static ICommentsService _commentsService;
+
+        private static IMessagesService _messagesService;
+        private static ICitiesService _citiesService;
+        private static ILikeClickerService _likeClickerService;
+
         private static string _phrase;
         private static double _wait;
-        private static string _city;
+        private static int[] _cityIds;
 
         private static string _deletedUserText;
         private static int _secondsToSleepAfterOwnerIdIsIncorrect = 1;
@@ -52,6 +59,14 @@ namespace VKApi.Console.Blacklister
         private const int MaxAge = 90;
 
         private const int MinutesToSleepInBackgroundWork = 5;
+        private static List<long> _blacklistMembersOfChatId;
+        private static int _backgroundWorkCityId;
+
+
+        private static LikeClickerStrategy _strategy;
+        private static ulong _postsCountToAnalyze;
+        private static string _groupName;
+        private static string[] _groupNames;
 
         private static void FillConfigurations()
         {
@@ -59,15 +74,38 @@ namespace VKApi.Console.Blacklister
             _phrase = _configurationProvider.GetConfig("SearchPhrase");
             _reverseTotalList = _configurationProvider.GetConfig("reverseTotalList", false);
             _wait = _configurationProvider.GetConfig("Wait", 23);
-            _city = _configurationProvider.GetConfig("City");
+
+            _cityIds = _configurationProvider.GetConfig("CityIds", _cityIds);
+            _backgroundWorkCityId = _configurationProvider.GetConfig("BackgroundWorkCityId", 73);
+
             _idsToExclude = _configurationProvider.GetConfig("idsToExclude", _idsToExclude);
 
             _deletedUserText = "DELETED";
             _secondsToSleepAfterOwnerIdIsIncorrect = 1;
             _secondsToSleepAfterOtherExceptions = 1;
             _hoursToSleepAfterFloodControl = 4;
-
+            _blacklistMembersOfChatId =
+                _configurationProvider.GetConfig("BlacklistMembersOfChatId", _blacklistMembersOfChatId);
             _groupSearchCount = 1000;
+
+
+            _strategy = _configurationProvider.GetConfig("Strategy ", _strategy);
+            _postsCountToAnalyze = (ulong) _configurationProvider.GetConfig("PostsCountToAnalyze", 100);
+            _groupName = _configurationProvider.GetConfig("GroupName");
+            _groupNames = _configurationProvider.GetConfig("reverseTotalList", _groupNames);
+        }
+
+        private static void InjectServices()
+        {
+            _groupService = ServiceInjector.Retrieve<IGroupSerice>();
+            _userService = ServiceInjector.Retrieve<IUserService>();
+            _apiFactory = ServiceInjector.Retrieve<IVkApiFactory>();
+            _likeService = ServiceInjector.Retrieve<ILikesService>();
+            _commentsService = ServiceInjector.Retrieve<ICommentsService>();
+            _messagesService = ServiceInjector.Retrieve<IMessagesService>();
+            _citiesService = ServiceInjector.Retrieve<ICitiesService>();
+            _configurationProvider = ServiceInjector.Retrieve<IConfigurationProvider>();
+            _likeClickerService = ServiceInjector.Retrieve<ILikeClickerService>();
         }
 
         private static async Task Main()
@@ -77,29 +115,33 @@ namespace VKApi.Console.Blacklister
 
             ServiceInjector.ConfigureServices();
 
-            _configurationProvider = ServiceInjector.Retrieve<IConfigurationProvider>();
+            InjectServices();
 
             FillConfigurations();
-
-            _groupService = ServiceInjector.Retrieve<IGroupSerice>();
-            _userService = ServiceInjector.Retrieve<IUserService>();
-            _apiFactory = ServiceInjector.Retrieve<IVkApiFactory>();
-            _likeService = ServiceInjector.Retrieve<ILikesService>();
 
             System.Console.Clear();
 
             System.Console.WriteLine("Start collecting group members...");
-            var badUsers = GetGroupsMembersByPhrase();
+
+            var blackListedUserIds = new List<long>(); //_userService.GetBannedIds().ToList().Distinct().ToList();
+
+            var badUsers = GetGroupsMembersByPhrase(blackListedUserIds);
+
+            var chatUsers = _messagesService.GeChatUsers(_blacklistMembersOfChatId, true);
+            System.Console.WriteLine($"chatUsers count is {chatUsers.Count}");
+
+            badUsers.AddRange(chatUsers);
 
 
             System.Console.WriteLine($"About to prepare list badUsers.Count is {badUsers.Count}.");
-            var totalUsersList = PrepareUserList(badUsers);
+            var cities = _citiesService.GetCities(_cityIds);
+            var totalUsersList = PrepareUserList(badUsers, blackListedUserIds, cities);
             System.Console.WriteLine($"List has been prepared, totalUsersList.Count is {totalUsersList.Count}.");
 
             BlackListUserList(totalUsersList);
 
             System.Console.WriteLine("Start collecting users for background work");
-            var usersForBackgroundWork = await GetUsersForBackgroundWork();
+            var usersForBackgroundWork = await GetUsersForBackgroundWork(cities);
 
             using (var api = _apiFactory.CreateVkApi())
             {
@@ -134,10 +176,10 @@ namespace VKApi.Console.Blacklister
             }
         }
 
-        private static async Task<List<UserExtended>> GetUsersForBackgroundWork()
+        private static async Task<List<UserExtended>> GetUsersFromCityForBackgroundWork()
         {
-            const int cityId = 73; //ToDo: refactor this shit
-            var param = new UserSearchParams()
+            var cityId = _backgroundWorkCityId;
+            var param = new UserSearchParams
             {
                 Sex = Sex.Male,
                 City = cityId,
@@ -146,10 +188,35 @@ namespace VKApi.Console.Blacklister
                 Count = 1000,
                 AgeFrom = MinAge,
                 AgeTo = MaxAge
-
             };
             var res = await _userService.Search(param);
             res = res.Where(x => !x.BlackListed()).Select(x => x).ToList();
+            return res;
+        }
+
+        private static async Task<List<UserExtended>> GetUsersForBackgroundWork(List<City> cities)
+        {
+            var likeClickerUsers = await _likeClickerService.GetUserIdsByStrategyAsync(_strategy, _postsCountToAnalyze,
+                _groupNames, _groupName, new AgeRange(17, 30), _backgroundWorkCityId, _cityIds);
+
+            var res = new List<UserExtended>();
+            var cityNames = cities.Select(x => x.Title).Distinct().ToArray();
+            foreach (var user in likeClickerUsers)
+            {
+                var friends = _userService.GetFriends(user.Id);
+
+                foreach (var friend in friends)
+                {
+                    if (!SatisfyBySecondAlgorithm(friend))
+                        continue;
+
+                    if (!user.FromCity(cityNames))
+                        continue;
+
+                    res.Add(friend);
+                }
+            }
+
             return res;
         }
 
@@ -168,10 +235,10 @@ namespace VKApi.Console.Blacklister
                 return false;
             }
 
-            if (user.Sex == Sex.Female && user.AgeVisible() && user.IsAgeBetween(MinAge, MaxAge))
-            {
-                return true;
-            }
+            //if (user.Sex == Sex.Female && user.AgeVisible() && user.IsAgeBetween(MinAge, MaxAge)) 
+            //{
+            //    return true;
+            //}
             return user.Sex == Sex.Male;
         }
 
@@ -180,9 +247,10 @@ namespace VKApi.Console.Blacklister
             return UsersFields.LastSeen | UsersFields.City | UsersFields.Domain;
         }
 
-        private static List<UserExtended> PrepareUserList(IEnumerable<UserExtended> badUsers)
+        private static List<UserExtended> PrepareUserList(IEnumerable<UserExtended> badUsers,
+            IEnumerable<long> blackListedUserIds, List<City> cities)
         {
-            var blackListedUserIds = _userService.GetBannedIds().ToList().Distinct();
+
             System.Console.Clear();
 
             var badUsersFiltered = badUsers.Where(u => !blackListedUserIds.Contains(u.Id))
@@ -194,9 +262,10 @@ namespace VKApi.Console.Blacklister
             badUsersOrdered = badUsersOrdered.ThenBy(u => u.IsDeactivated)
                 .ThenBy(u => u.FirstName.Contains(_deletedUserText));
 
-            if (!string.IsNullOrWhiteSpace(_city))
+            var cityNames = cities.Select(x => x.Title).Distinct().ToArray();
+            if (cityNames.Any())
             {
-                badUsersOrdered = badUsersOrdered.ThenByDescending(u => u.FromCity(_city));
+                badUsersOrdered = badUsersOrdered.ThenByDescending(u => u.FromCity(cityNames));
             }
 
             var totalUsersList = badUsersOrdered.ToList();
@@ -232,7 +301,6 @@ namespace VKApi.Console.Blacklister
         }
 
 
-
         private static string ActionResultLogMessage(User u, bool result, int? counter = null, int? count = null,
             Exception ex = null)
         {
@@ -257,6 +325,7 @@ namespace VKApi.Console.Blacklister
                     message = $"{domain} - deleted. {timeInfoString}";
                 }
             }
+
             return message;
         }
 
@@ -319,11 +388,11 @@ namespace VKApi.Console.Blacklister
                     timeToSleepAfterError = TimeSpan.FromSeconds(_secondsToSleepAfterOtherExceptions);
                 }
             }
+
             return timeToSleepAfterError;
         }
 
-
-        private static List<UserExtended> GetGroupsMembersByPhrase()
+        private static List<UserExtended> GetGroupsMembersByPhrase(List<long> blackListedUserIds)
         {
             var groups = _groupService.GetGroupsBySearchPhrase(_phrase, _groupSearchCount);
             var badUsers = new List<UserExtended>();
@@ -332,7 +401,7 @@ namespace VKApi.Console.Blacklister
 
             foreach (var g in groups)
             {
-                System.Console.WriteLine($"Getting memebers for group {g.Id} (vk.com/club{g.Id})");
+                System.Console.WriteLine($"Getting members for group {g.Id} (vk.com/club{g.Id})");
                 try
                 {
                     var groupBadUsers = _groupService.GetGroupMembers(g.Id.ToString(), GetFields()).ToList();
@@ -340,11 +409,10 @@ namespace VKApi.Console.Blacklister
                 }
                 catch (Exception e)
                 {
-                    if (e.DoesGroupHideMembers())
-                    {
-                        System.Console.WriteLine($"vk.com/club{g.Id} - hides memmbers");
-                        GetGroupsMembersInHiddenGroup(g.Id);
-                    }
+                    if (!e.DoesGroupHideMembers()) continue;
+
+                    System.Console.WriteLine($"vk.com/club{g.Id} - hides members");
+                    GetGroupsMembersInHiddenGroup(g.Id, blackListedUserIds);
 
                 }
 
@@ -353,28 +421,72 @@ namespace VKApi.Console.Blacklister
             return badUsers.Distinct().ToList();
         }
 
-
-        private static List<UserExtended> GetGroupsMembersInHiddenGroup(long groupId)
+        private static List<UserExtended> GetGroupsMembersInHiddenGroup(long groupId, List<long> blackListedUserIds)
         {
-            var userIds = new List<long>();
+            var users = new List<UserExtended>();
             using (var api = _apiFactory.CreateVkApi(true))
             {
-               var minDateConfig = _configurationProvider.GetConfig("minDateForPostsInHiddenGroups");
-               var minDate = DateTime.ParseExact(minDateConfig, "d", CultureInfo.InvariantCulture);
-               var wallPosts = _groupService.GetPostsByGroupId(groupId, api, minDate);
+                var minDateConfig = _configurationProvider.GetConfig("minDateForPostsInHiddenGroups");
+                var minDate = DateTime.ParseExact(minDateConfig, "d", CultureInfo.InvariantCulture);
+                var wallPosts = _groupService.GetPostsByGroupId(groupId, api, minDate).Where(x=>x.Date>=minDate).Select(x=>x);
 
                 foreach (var wallPost in wallPosts)
                 {
-                    var likerIds = _likeService.GetUsersWhoLiked(wallPost.OwnerId.Value, wallPost.Id.Value, LikeObjectType.Post, api);
-                    userIds.AddRange(likerIds);
+                    if (!wallPost.OwnerId.HasValue || !wallPost.Id.HasValue)
+                    {
+                        continue;
+                    }
+
+                    System.Console.WriteLine();
+                    System.Console.WriteLine($"Get information for {wallPost.GetPostUrl()}  {wallPost.Date}");
+
+                    var likerIds = _likeService.GetUsersWhoLiked(wallPost.OwnerId.Value, wallPost.Id.Value,
+                        LikeObjectType.Post, api);
+
+                    System.Console.WriteLine($"likerIds count is {likerIds.Count}");
+
+                    var usersToAdd = likerIds.Select(x => new UserExtended(new User {Id = x})).ToList();
+                    users.AddRange(usersToAdd);
+
+                    var ownerId = -wallPost.OwnerId.Value;
+                    var profiles = new List<User>();
+                    var commentsForPost =
+                        _commentsService.GetComments(0 - ownerId, wallPost.Id.Value, api, ref profiles);
+
+                    System.Console.WriteLine($"comments count is {commentsForPost.Count}");
+
+
+                    var totalCommentsLikersCount = 0;
+                    foreach (var comment in commentsForPost)
+                    {
+                        if (comment.FromId.HasValue && comment.FromId.Value > 0)
+                        {
+                            var profile = profiles.FirstOrDefault(x => x.Id == comment.FromId);
+                            if (profile != null)
+                            {
+                                users.Add(profile.ToExtendedModel());
+                            }
+                            else
+                            {
+                                users.Add(new UserExtended(new User {Id = comment.FromId.Value}));
+                            }
+                        }
+
+                        var commentLikerIds = _likeService.GetUsersWhoLiked(wallPost.OwnerId.Value, comment.Id,
+                            LikeObjectType.Comment, api);
+
+                        totalCommentsLikersCount += commentLikerIds.Count;
+                        users.AddRange(commentLikerIds.Select(x => new UserExtended(new User {Id = x})).ToList());
+                    }
+
+                    System.Console.WriteLine($"totalCommentsLikersCount count is {totalCommentsLikersCount}");
+
+                    // var newUsers = userIds.Select(u => !blackListedUserIds.Contains(u));
                 }
             }
 
-
-            return new List<UserExtended>();
+            return users.Distinct().ToList();
         }
-
-
 
     }
 }

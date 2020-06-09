@@ -154,10 +154,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions\GroupExtensions.cs" />
+    <Compile Include="Extensions\PostExtensions.cs" />
+    <Compile Include="Interfaces\ICitiesService.cs" />
     <Compile Include="Interfaces\ICommentsService.cs" />
+    <Compile Include="Interfaces\ILikeClickerService.cs" />
+    <Compile Include="Interfaces\IMessagesService.cs" />
     <Compile Include="Models\Account.cs" />
-    <Compile Include="Models\UserExtended.cs" />
+    <Compile Include="Models\LikeClickerStrategy.cs" />
+    <Compile Include="Models\Users\AgeRange.cs" />
+    <Compile Include="Models\Users\UserExtended.cs" />
+    <Compile Include="Services\CitiesService.cs" />
     <Compile Include="Services\CommentsService.cs" />
+    <Compile Include="Services\LikeClickerService.cs" />
+    <Compile Include="Services\MessagesService.cs" />
     <Compile Include="Services\PhotoService.cs" />
     <Compile Include="ConfigurationProvider.cs" />
     <Compile Include="Services\GroupService.cs" />
@@ -187,6 +196,7 @@
     <Analyzer Include="..\packages\SonarAnalyzer.CSharp.8.6.1.17183\analyzers\SonarAnalyzer.CSharp.dll" />
     <Analyzer Include="..\packages\SonarAnalyzer.CSharp.8.6.1.17183\analyzers\SonarAnalyzer.dll" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

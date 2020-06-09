@@ -6,6 +6,6 @@ namespace VKApi.BL.Interfaces
 {
     public interface ICommentsService
     {
-        List<Comment> GetComments(long ownerId, long postId, VkApi api);
+        List<Comment> GetComments(long ownerId, long postId, VkApi api, ref List<User> profiles);
     }
 }

@@ -30,18 +30,32 @@ namespace VKApi.BL.Services
             return likerIds.Distinct().ToList();
         }
 
+
+
         public List<long> GetUsersWhoLiked(long ownerId, long itemId, LikeObjectType type, VkApi api)
         {
-            uint? count = 1000;
-
-            var result = api.Likes.GetList(new LikesGetListParams
+            uint? step = 1000;
+            uint? offset = 0;
+            ulong totalCount;
+            var result = new List<long>();
+            do
+            {
+                var param = new LikesGetListParams
                 {
                     OwnerId = ownerId,
-                    Count = count,
+                    Count = step,
                     Type = type,
                     ItemId = itemId,
-                })
-                .ToList();
+                    Extended = true,
+                    Offset = offset
+                };
+                var likerChunk = api.Likes.GetList(param);
+
+                offset += step;
+                totalCount = likerChunk.TotalCount;
+                result.AddRange(likerChunk.ToList());
+            } while (offset < totalCount);
+
             System.Threading.Thread.Sleep(TimeSpan.FromSeconds(.10));
             return result;
         }
