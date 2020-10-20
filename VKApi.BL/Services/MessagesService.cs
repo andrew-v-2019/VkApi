@@ -3,8 +3,8 @@ using System.Linq;
 using VKApi.BL.Extensions;
 using VKApi.BL.Interfaces;
 using VKApi.BL.Models;
-using VkNet.Enums.Filters;
-using VkNet.Enums.SafetyEnums;
+using VkNet.Model;
+using VkNet.Model.RequestParams;
 
 namespace VKApi.BL.Services
 {
@@ -26,8 +26,17 @@ namespace VKApi.BL.Services
 
             using (var api = _apiFactory.CreateVkApi(fakeApi))
             {
-                var chatUsers = api.Messages.GetChatUsers(chatIds, UsersFields.All, NameCase.Abl);
-                return chatUsers.Select(u => u.ToExtendedModel()).ToList();
+                //var allChats = api.Messages.GetConversations(new GetConversationsParams());
+                //var chatUsers = api.Messages.GetChatUsers(chatIds, UsersFields.All, NameCase.Abl);
+
+                var chatUsers = new List<long>();
+                foreach (var chatId in chatIds)
+                {
+                    var getMembersRes = api.Messages.GetConversationMembers(chatId, new List<string> {"id"});
+                    chatUsers.AddRange(getMembersRes.Items.Select(x=>x.MemberId));
+                }
+               
+                return chatUsers.Select(u => new UserExtended(new User {Id = u})).ToList();
             }
         }
     }

@@ -37,5 +37,7 @@ namespace VKApi.BL.Models
         public int? Age { get; set; }
         public DateTime LastActivityDate { get; set; }
         public bool HasChildrens { get; set; }
+
+    
     }
 }

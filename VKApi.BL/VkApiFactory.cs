@@ -6,6 +6,8 @@ using VKApi.BL.Interfaces;
 using VKApi.BL.Models;
 using System.Linq;
 using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
+using VkNet.AudioBypassService.Extensions;
 
 namespace VKApi.BL
 {
@@ -33,7 +35,10 @@ namespace VKApi.BL
                 return _fakeApi;
             }
 
-            var api = new VkApi();
+            var services = new ServiceCollection();
+            services.AddAudioBypass(); 
+
+            var api = new VkApi(services);
             var account = CreateAccount(fake);
 
             if (!fake)

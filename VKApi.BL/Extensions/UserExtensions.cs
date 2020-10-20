@@ -78,14 +78,19 @@ namespace VKApi.BL.Extensions
             return user.City != null && user.City.Title.ToLower().Contains(cityLow);
         }
 
-        public static bool FromCity(this UserExtended user, string[] cities)
+        public static bool FromCity(this UserExtended user, long[] cities)
         {
             if (user.City == null)
             {
                 return false;
             }
-            var citiesLowered = cities.Select(c => c.Trim().ToLower()).ToList();
-            return citiesLowered.Contains(user.City.Title.Trim().ToLower());
+
+            if (!user.City.Id.HasValue)
+            {
+                return false;
+            }
+
+            return cities.Any(c => c == user.City.Id.Value);
         }
 
         public static bool BlackListed(this User user)
@@ -95,7 +100,14 @@ namespace VKApi.BL.Extensions
 
         public static string GetDomainForUser(this User user)
         {
-            return $"vk.com/{user.Domain}";
+            var r = $"vk.com/{user.Domain}";
+
+            if (string.IsNullOrWhiteSpace(user.Domain))
+            {
+                r = $"vk.com/id{user.Id}";
+            }
+
+            return r;
         }
 
         public static UserExtended ToExtendedModel(this User u)

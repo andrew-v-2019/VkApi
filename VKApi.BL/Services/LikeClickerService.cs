@@ -36,7 +36,7 @@ namespace VKApi.BL.Services
             ulong? postsCountToAnalyze, string[] groupNames, string groupName, AgeRange ageRange, int cityId, int[] cityIds)
         {
             var users = new List<UserExtended>();
-          
+
             switch (strategy)
             {
                 case LikeClickerStrategy.PostsLikers:
@@ -80,7 +80,7 @@ namespace VKApi.BL.Services
                     break;
             }
 
-           var cities = _citiesService.GetCities(cityIds);
+            var cities = _citiesService.GetCities(cityIds);
 
             Console.WriteLine($"Users count is {users.Count}.");
             var filteredUsers = FilterUsers(users, ageRange, cities);
@@ -116,8 +116,8 @@ namespace VKApi.BL.Services
                 return false;
             }
 
-            var cityNames = cities.Select(x => x.Title).Distinct().ToArray();
-            if (!user.FromCity(cityNames))
+            var cityIds = cities.Select(x => x.Id.Value).Distinct().ToArray();
+            if (!user.FromCity(cityIds))
             {
                 return false;
             }

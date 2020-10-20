@@ -33,6 +33,7 @@ namespace VKApi.BL.Unity
             Register<IMessagesService, MessagesService>();
             Register<ICitiesService, CitiesService>();
             Register<ILikeClickerService, LikeClickerService>();
+            Register<ICacheService, CacheService>();
         }
     }
 }

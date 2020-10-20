@@ -14,11 +14,12 @@ namespace VKApi.BL.Services
     public class UserService : IUserService
     {
         private readonly IVkApiFactory _apiFactory;
+        private readonly ICacheService _cache;
 
-
-        public UserService(IVkApiFactory apiFactory)
+        public UserService(IVkApiFactory apiFactory, ICacheService cache)
         {
             _apiFactory = apiFactory;
+            _cache = cache;
         }
 
         public List<UserExtended> GetFriends(long userId)
@@ -87,6 +88,12 @@ namespace VKApi.BL.Services
 
         public List<long> GetBannedIds()
         {
+            var cacheData = _cache.Get<List<long>>(CacheKeys.BannedUserIds.ToString());
+            if (cacheData != null && cacheData.Any())
+            {
+                return cacheData;
+            }
+
             var users = new List<UserExtended>();
             const int step = 200;
             var offset = 0;
@@ -104,7 +111,7 @@ namespace VKApi.BL.Services
                 } while (chunkCount == step);
             }
             var ids = users.Select(u => u.Id).ToList();
-            Console.WriteLine();
+            _cache.Create(ids, CacheKeys.BannedUserIds.ToString());
             return ids;
         }
 
@@ -117,12 +124,12 @@ namespace VKApi.BL.Services
             return commonFriends.Any();
         }
 
-        public async Task<List<UserExtended>>Search(UserSearchParams parameters)
+        public async Task<List<UserExtended>> Search(UserSearchParams parameters)
         {
             using (var api = _apiFactory.CreateVkApi())
             {
                 var searchResult = await api.Users.SearchAsync(parameters);
-                return searchResult.Select(x=>new UserExtended(x)).ToList();
+                return searchResult.Select(x => new UserExtended(x)).ToList();
             }
         }
     }
