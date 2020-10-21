@@ -49,7 +49,7 @@ namespace VKApi.BL.Services
                     Extended = true,
                     Offset = offset
                 };
-                var likerChunk = api.Likes.GetList(param);
+                var likerChunk = api.Likes.GetList(param);//5000 тыщ запросов в день
 
                 offset += step;
                 totalCount = likerChunk.TotalCount;
