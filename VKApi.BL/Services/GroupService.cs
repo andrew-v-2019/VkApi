@@ -163,7 +163,7 @@ namespace VKApi.BL.Services
                 Offset = offset,
                 GroupId = groupName,
                 Sort = _getMembersSort,
-                Fields = fields,
+                Fields = fields
             };
             usersChunk = api.Groups.GetMembers(param).ToList();
 

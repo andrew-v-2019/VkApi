@@ -11,7 +11,6 @@ using VKApi.BL;
 using VKApi.BL.Interfaces;
 using VKApi.BL.Models;
 using VKApi.BL.Unity;
-using VKApi.Console.Blacklister.Extensions;
 using VkNet.Model.RequestParams;
 using VkNet.Enums.SafetyEnums;
 using System.Globalization;

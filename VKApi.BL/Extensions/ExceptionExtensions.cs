@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace VKApi.Console.Blacklister.Extensions
+namespace VKApi.BL.Extensions
 {
-   public static class ExceptionExtensions
+    public static class ExceptionExtensions
     {
         public static bool IsFloodControl(this Exception e)
         {

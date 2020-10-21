@@ -65,22 +65,6 @@ namespace VKApi.BL.Services
             {
                 Console.WriteLine(e.Message);
             }
-
-        }
-
-        private void DeleteFile(string path)
-        {
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-            }
-        }
-
-        private void CreateFile(string path)
-        {
-            DeleteFile(path);
-            CreateCacheDir();
-            File.Create(path);
         }
 
         private void CreateCacheDir()
