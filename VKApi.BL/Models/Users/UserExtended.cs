@@ -7,6 +7,11 @@ namespace VKApi.BL.Models
 {
     public class UserExtended : User
     {
+
+        public UserExtended()
+        {
+        }
+
         public UserExtended(User u)
         {
             var properties = u.GetType().GetProperties();
@@ -38,6 +43,6 @@ namespace VKApi.BL.Models
         public DateTime LastActivityDate { get; set; }
         public bool HasChildrens { get; set; }
 
-    
+
     }
 }

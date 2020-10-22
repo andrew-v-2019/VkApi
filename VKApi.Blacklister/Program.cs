@@ -71,6 +71,8 @@ namespace VKApi.Console.Blacklister
 
         private static long[] _blackListGroupIds;
 
+        private static readonly List<long> AffectedUserIds = new List<long>();
+
         private static void FillConfigurations()
         {
             _excludeDeletedUsers = false;
@@ -116,6 +118,17 @@ namespace VKApi.Console.Blacklister
             _cacheService = ServiceInjector.Retrieve<ICacheService>();
         }
 
+        private static string _primaryCacheKey = "PrimaryBlackListUsers";
+
+        private static List<UserExtended> GetCachedBlacklistUsers()
+        {
+            var cachedUsers = _cacheService.Get<List<long>>(_primaryCacheKey);
+            cachedUsers = cachedUsers ?? new List<long>();
+            System.Console.WriteLine($"cachedUsers count is {cachedUsers.Count}.");
+            var result = cachedUsers.Select(x => new UserExtended {Id = x}).ToList();
+            return result;
+        }
+
         private static async Task Main()
         {
             var ps = Process.GetCurrentProcess();
@@ -129,21 +142,21 @@ namespace VKApi.Console.Blacklister
 
             System.Console.Clear();
 
-            System.Console.WriteLine("Start collecting group members...");
+            AppDomain.CurrentDomain.ProcessExit += new EventHandler(CurrentDomain_ProcessExit);
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
             var blackListedUserIds = _userService.GetBannedIds().Distinct().ToList();
 
-            var badUsers = GetGroupsMembersByGroupIds(_blackListGroupIds, blackListedUserIds);
+            //var badUsers = GetGroupsMembersByGroupIds(_blackListGroupIds, blackListedUserIds);
+            //var chatUsers = _messagesService.GeChatUsers(_blacklistMembersOfChatId.ToList(), true);
+            //System.Console.WriteLine($"chatUsers count is {chatUsers.Count}");
+            //badUsers.AddRange(chatUsers);
 
-            var chatUsers = _messagesService.GeChatUsers(_blacklistMembersOfChatId.ToList(), true);
-            System.Console.WriteLine($"chatUsers count is {chatUsers.Count}");
-
-            badUsers.AddRange(chatUsers);
-
+            var badUsers = GetCachedBlacklistUsers();
 
             System.Console.WriteLine($"About to prepare list badUsers.Count is {badUsers.Count}.");
             var cities = _citiesService.GetCities(_cityIds);
-            var totalUsersList = PrepareUserList(badUsers, blackListedUserIds, cities);
+            var totalUsersList = badUsers.Where(u => !blackListedUserIds.Contains(u.Id)).Select(x => x).ToList();//PrepareUserList(badUsers, blackListedUserIds, cities);
             System.Console.WriteLine($"List has been prepared, totalUsersList.Count is {totalUsersList.Count}.");
 
             BlackListUserList(totalUsersList);
@@ -182,6 +195,32 @@ namespace VKApi.Console.Blacklister
                     System.Threading.Thread.Sleep(sleep);
                 }
             }
+        }
+
+        private static void RefreshCache()
+        {
+            var userIdsBefore = GetCachedBlacklistUsers();
+
+            var after = new List<long>();
+            foreach (var userIdBefore in userIdsBefore)
+            {
+                if (!AffectedUserIds.Contains(userIdBefore.Id))
+                {
+                    after.Add(userIdBefore.Id);
+                }
+            }
+
+            _cacheService.Create(after, _primaryCacheKey);
+        }
+
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            RefreshCache();
+        }
+
+        private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
+        {
+            RefreshCache();
         }
 
         private static async Task<List<UserExtended>> GetUsersFromCityForBackgroundWork()
@@ -322,6 +361,11 @@ namespace VKApi.Console.Blacklister
                 counterString = $" {counter} out of {count}. {count - counter} - left.";
             }
 
+            if (result)
+            {
+                AffectedUserIds.Add(u.Id);
+            }
+
             if (ex == null)
             {
                 message =
@@ -386,6 +430,7 @@ namespace VKApi.Console.Blacklister
             {
                 message = ActionResultLogMessage(userThrowsException, false, counter, count, e);
                 timeToSleepAfterError = TimeSpan.FromSeconds(_secondsToSleepAfterOwnerIdIsIncorrect);
+                return timeToSleepAfterError;
             }
             else
             {
@@ -393,16 +438,20 @@ namespace VKApi.Console.Blacklister
                 {
                     message = "Flood control. Sleeping...";
                     timeToSleepAfterError = TimeSpan.FromHours(_hoursToSleepAfterFloodControl);
+                    return timeToSleepAfterError;
                 }
                 else
                 {
                     var domain = userThrowsException.GetDomainForUser();
                     message = domain + " - " + e.Message.Trim();
-                    timeToSleepAfterError = TimeSpan.FromSeconds(_secondsToSleepAfterOtherExceptions);
+                   
+                    //throw e;
                 }
             }
+            timeToSleepAfterError = TimeSpan.FromSeconds(_secondsToSleepAfterOtherExceptions);
 
             return timeToSleepAfterError;
+
         }
 
         private static List<UserExtended> GetGroupsMembersByGroupIds(long[] blackListGroupIds, List<long> blackListedUserIds)
