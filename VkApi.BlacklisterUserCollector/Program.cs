@@ -71,19 +71,12 @@ namespace VkApi.BlacklisterUserCollector
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(CurrentDomain_ProcessExit);
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
-            try
-            {
-                var blackListedUserIds = _userService.GetBannedIds().Distinct().ToList();
-                var badUsers = GetGroupsMembersByGroupIds(_blackListGroupIds, blackListedUserIds, _badUserIds);
-                var chatUsers = _messagesService.GeChatUsers(_blacklistMembersOfChatId.ToList(), true);
-                Console.WriteLine($"chatUsers count is {chatUsers.Count}");
+            var blackListedUserIds = _userService.GetBannedIds().Distinct().ToList();
+            var badUsers = GetGroupsMembersByGroupIds(_blackListGroupIds, blackListedUserIds, _badUserIds);
+            var chatUsers = _messagesService.GeChatUsers(_blacklistMembersOfChatId.ToList(), true);
+            Console.WriteLine($"chatUsers count is {chatUsers.Count}");
 
-                _badUserIds.AddRange(chatUsers.Select(x => x.Id).ToList());
-            }
-            catch (Exception e)
-            {
-                throw;
-            }
+            _badUserIds.AddRange(chatUsers.Select(x => x.Id).ToList());
         }
 
         private static void CurrentDomain_UnhandledException(object sender, EventArgs e)

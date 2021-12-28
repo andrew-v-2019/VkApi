@@ -20,7 +20,7 @@ namespace VKApi.BL
                 var configValue = JsonConvert.DeserializeObject<T>(configValueString);
                 return configValue;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return defaultValue;
             }

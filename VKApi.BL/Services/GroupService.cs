@@ -211,7 +211,7 @@ namespace VKApi.BL.Services
 
                 return res.MembersCount.GetValueOrDefault();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return 0;
             }

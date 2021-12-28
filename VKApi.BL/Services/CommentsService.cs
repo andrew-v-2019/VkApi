@@ -16,10 +16,6 @@ namespace VKApi.BL.Services
             //https://vknet.github.io/vk/wall/getComments/
             const int step = 100;
 
-            if (postId == 483997)
-            {
-
-            }
 
             var comments = new List<Comment>();
             long offset = 0;
@@ -47,7 +43,7 @@ namespace VKApi.BL.Services
                     param.Offset = offset;
                     totalCount = getResult.Count;
                 }
-                catch(Exception e)
+                catch(Exception)
                 {
                     offset += 1;
                 }
