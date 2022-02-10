@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using VKApi.BL.Interfaces;
 using VKApi.BL.Models;
 using VKApi.BL.Models.Users;
+using VKApi.BL.Services;
 using VKApi.BL.Unity;
 using VkNet;
 using VkNet.Enums.SafetyEnums;
@@ -20,6 +22,8 @@ namespace VKApi.LikeClicker
         private static IPhotosService _photoService;
         private static IConfigurationProvider _configurationProvider;
         private static ILikeClickerService _likeClickerService;
+        private static IUserService _userService;
+
 
         private static void InjectServices()
         {
@@ -28,13 +32,11 @@ namespace VKApi.LikeClicker
             _photoService = ServiceInjector.Retrieve<IPhotosService>();
             _configurationProvider = ServiceInjector.Retrieve<IConfigurationProvider>();
             _likeClickerService = ServiceInjector.Retrieve<ILikeClickerService>();
+
+            _userService = ServiceInjector.Retrieve<UserService>();
         }
 
-        private static string _groupName;
-
-        private static string[] _groupNames;
-
-        private static ulong _postsCountToAnalyze;
+        private static List<string> _groupNames;
         private static int _profilePhotosToLike;
 
         private static int _minAge;
@@ -42,23 +44,29 @@ namespace VKApi.LikeClicker
         private static int _skipRecentlyLikedProfilesPhotosCount = 1;
 
         private static int[] _cityIds;
-        private static int _cityId;
 
         private static LikeClickerStrategy _strategy;
 
+        private static DateTime MinDateForPosts = DateTime.Now.AddMonths(-1);
+
         private static void FillConfigurations()
         {
-            _groupName = _configurationProvider.GetConfig("GroupName");
-            _groupNames = _configurationProvider.GetConfig("reverseTotalList", _groupNames);
-            _postsCountToAnalyze = (ulong) _configurationProvider.GetConfig("PostsCountToAnalyze", 100);
+            _groupNames = _configurationProvider.GetConfig("GroupNames", _groupNames);
             _profilePhotosToLike = _configurationProvider.GetConfig("ProfilePhotosToLike", 2);
             _minAge = _configurationProvider.GetConfig("MinAge", 17);
             _maxAge = _configurationProvider.GetConfig("MaxAge", 29);
             _skipRecentlyLikedProfilesPhotosCount =
                 _configurationProvider.GetConfig("SkipRecentlyLikedProfilesPhotosCount ", 1);
-            _cityIds = _configurationProvider.GetConfig("CityIds ", _cityIds);
-            _strategy = _configurationProvider.GetConfig("Strategy ", _strategy);
-            _cityId = _configurationProvider.GetConfig("CityId", 73);
+            _cityIds = _configurationProvider.GetConfig("CityIds", _cityIds);
+            _strategy = _configurationProvider.GetConfig("Strategy", _strategy);
+
+            var minDateConfig = _configurationProvider.GetConfig("MinDateForPosts");
+
+            if (!string.IsNullOrWhiteSpace(minDateConfig)) 
+            {
+                MinDateForPosts = DateTime.ParseExact(minDateConfig, "d", CultureInfo.InvariantCulture);
+            }
+          
         }
 
         private static async Task Main()
@@ -68,13 +76,15 @@ namespace VKApi.LikeClicker
 
             ServiceInjector.ConfigureServices();
             InjectServices();
-            Console.Clear();
-
-            Console.WriteLine("Get user ids...");
             FillConfigurations();
 
-            var filteredUsers = await _likeClickerService.GetUserIdsByStrategyAsync(_strategy, _postsCountToAnalyze,
-                _groupNames, _groupName, new AgeRange(_maxAge, _minAge), _cityId, _cityIds);
+            Console.Clear();
+            Console.WriteLine("Get user ids...");
+           
+            var blackListedUserIds = _userService.GetBannedIds().Distinct().ToList();
+
+            var filteredUsers = await _likeClickerService.GetUserIdsByStrategyAsync(_strategy,
+                _groupNames, new AgeRange(_minAge, _maxAge), _cityIds, MinDateForPosts, blackListedUserIds);
 
             using (var api = _apiFactory.CreateVkApi())
             {

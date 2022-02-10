@@ -17,5 +17,7 @@ namespace VKApi.BL.Interfaces
         List<Post> GetPostsByGroupId(long groupId, VkApi api, ulong? count = null);
 
         List<Post> GetPostsByGroupId(long groupId, VkApi api, DateTime minDate);
+
+        List<UserExtended> GetGroupPostsLickers(long groupId, List<long> blackListedUserIds, DateTime minPostDate);
     }
 }

@@ -8,9 +8,6 @@ using VKApi.BL.Models;
 using VKApi.BL.Models.Users;
 using VkNet.Enums;
 using VkNet.Enums.Filters;
-using VkNet.Enums.SafetyEnums;
-using VkNet.Model;
-using VkNet.Model.Attachments;
 using VkNet.Model.RequestParams;
 
 namespace VKApi.BL.Services
@@ -33,54 +30,56 @@ namespace VKApi.BL.Services
         }
 
         public async Task<List<UserExtended>> GetUserIdsByStrategyAsync(LikeClickerStrategy strategy,
-            ulong? postsCountToAnalyze, string[] groupNames, string groupName, AgeRange ageRange, int cityId, int[] cityIds)
+            List<string> groupNames, AgeRange ageRange, int[] cityIds, DateTime minDateForPosts, List<long> blackListedUserIds)
         {
             var users = new List<UserExtended>();
+            var fields = GetFields();
 
             switch (strategy)
             {
                 case LikeClickerStrategy.PostsLikers:
 
-                    groupNames = groupNames.Distinct().ToArray();
                     var likerIds = new List<long>();
-                    var posts = new List<Post>();
                     foreach (var name in groupNames)
                     {
-                        var groupPosts = _groupService.GetPosts(name, postsCountToAnalyze);
-                        posts.AddRange(groupPosts);
-                        foreach (var post in groupPosts)
-                        {
-                            var ownerId = post.OwnerId;
-                            var postId = post.Id;
-
-                            if (!ownerId.HasValue || !postId.HasValue)
-                                continue;
-
-                            var likerIdsChunk =
-                                _likesService.GetUsersWhoLiked(ownerId.Value, post.Id.Value, LikeObjectType.Post);
-                            likerIds.AddRange(likerIdsChunk.Distinct());
-                            Console.Clear();
-                            Console.WriteLine($"user ids count: {likerIds.Count}");
-                        }
+                        var group = _groupService.GetByName(name);
+                        var likers = _groupService.GetGroupPostsLickers(group.Id, blackListedUserIds, minDateForPosts);
+                        var likerIdsChunk = likers.Select(x => x.Id);
+                        likerIds.AddRange(likerIdsChunk);
                     }
 
                     likerIds = likerIds.Distinct().ToList();
+                    users = _userService.GetUsersByIds(likerIds, fields).ToList();
                     Console.WriteLine("Get user by ids");
-                    users = _userService.GetUsersByIds(likerIds);
+
                     break;
                 case LikeClickerStrategy.GroupMembers:
-                    var group = _groupService.GetByName(groupName);
-                    var members = _groupService.GetGroupMembers(group.Id.ToString(), UsersFields.Domain);
-                    var fields = GetFields();
-                    users = _userService.GetUsersByIds(members.Select(x => x.Id).ToList(), fields).Distinct().ToList();
+                    var allMemebers = new List<UserExtended>();
+
+                    foreach (var groupName in groupNames)
+                    {
+
+                        try
+                        {
+                            var group = _groupService.GetByName(groupName);
+                            var members = _groupService.GetGroupMembers(group.Id.ToString(), UsersFields.Domain);
+                            allMemebers.AddRange(members);
+                        }
+                        catch (Exception)
+                        {
+                            continue;
+                        }
+                    }
+                    
+                    users = _userService.GetUsersByIds(allMemebers.Select(x => x.Id).ToList(), fields).Distinct().ToList();
                     break;
 
                 case LikeClickerStrategy.SearchResults:
-                    users = await SearchUsers(ageRange, cityId);
+                    users = await SearchUsers(ageRange, cityIds.FirstOrDefault());
                     break;
             }
 
-            var cities = _citiesService.GetCities(cityIds);
+            var cities = _citiesService.GetCities(cityIds, false);
 
             Console.WriteLine($"Users count is {users.Count}.");
             var filteredUsers = FilterUsers(users, ageRange, cities);
@@ -90,7 +89,7 @@ namespace VKApi.BL.Services
         }
 
         private static List<UserExtended> FilterUsers(IEnumerable<UserExtended> users, AgeRange ageRange,
-            List<City> cities)
+            List<CityExtended> cities)
         {
             var filteredUsers = users
                 .Where(x => ShouldLike(x, ageRange, cities))
@@ -104,7 +103,7 @@ namespace VKApi.BL.Services
         }
 
 
-        private static bool ShouldLike(UserExtended user, AgeRange ageRange, List<City> cities)
+        private static bool ShouldLike(UserExtended user, AgeRange ageRange, List<CityExtended> cities)
         {
             if (!user.IsAgeBetween(ageRange.Min, ageRange.Max))
             {
@@ -116,8 +115,8 @@ namespace VKApi.BL.Services
                 return false;
             }
 
-            var cityIds = cities.Select(x => x.Id.Value).Distinct().ToArray();
-            if (!user.FromCity(cityIds))
+            //  var cityIds = cities.Select(x => x.Id.Value).Distinct().ToArray();
+            if (!user.FromCity(cities))
             {
                 return false;
             }

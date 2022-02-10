@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using VKApi.BL.Models;
 using VkNet.Enums;
@@ -9,6 +10,7 @@ namespace VKApi.BL.Extensions
 {
     public static class UserExtensions
     {
+       
         public static bool IsAgeBetween(this UserExtended user, int min, int max)
         {
             if (!AgeVisible(user))
@@ -72,10 +74,25 @@ namespace VKApi.BL.Extensions
             return daysWithoutVist > days;
         }
 
-        public static bool FromCity(this UserExtended user, string cityName)
+        public static bool FromCity(this UserExtended user, List<CityExtended> cities)
         {
-            var cityLow = cityName.Trim().ToLower();
-            return user.City != null && user.City.Title.ToLower().Contains(cityLow);
+            if (user?.City?.Id != null)
+            {
+                var cityIds = cities.Select(x => x.Id).ToList();
+                var res = cityIds.Contains(user.City.Id.Value);
+
+                return res;
+            }
+
+            if (!string.IsNullOrWhiteSpace(user?.HomeTown))
+            {
+                var cityNames = cities.SelectMany(x => x.Names.Select(x1 => x1.Trim().ToLower())).ToList();
+                var res = cityNames.Contains(user.HomeTown.Trim().ToLower());
+
+                return res;
+            }
+
+            return false;
         }
 
         public static bool FromCity(this UserExtended user, long[] cities)

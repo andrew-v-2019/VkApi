@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using Newtonsoft.Json;
@@ -17,7 +18,18 @@ namespace VKApi.BL
                     return defaultValue;
                 }
                 var configValueString = ConfigurationManager.AppSettings[name];
-                var configValue = JsonConvert.DeserializeObject<T>(configValueString);
+
+                T configValue;
+                if (typeof(T) == typeof(List<string>))
+                {
+                    var spl = configValueString.Split(',').Distinct().Select(st=>st.Trim()).ToList();
+                    configValue = (T)Convert.ChangeType(spl, typeof(T));
+                }
+                else
+                {
+                    configValue = JsonConvert.DeserializeObject<T>(configValueString);
+                }
+
                 return configValue;
             }
             catch (Exception e)

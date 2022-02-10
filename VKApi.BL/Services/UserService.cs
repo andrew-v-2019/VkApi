@@ -26,14 +26,22 @@ namespace VKApi.BL.Services
         {
             using (var api = _apiFactory.CreateVkApi())
             {
-                var param = new FriendsGetParams()
+                try
                 {
-                    UserId = userId,
-                    Fields = ProfileFields.All
-                };
-                var friends = api.Friends.Get(param);
-                var result = friends.Select(x => new UserExtended(x)).ToList();
-                return result;
+                    var param = new FriendsGetParams()
+                    {
+                        UserId = userId,
+                        Fields = ProfileFields.All
+                    };
+                    var friends = api.Friends.Get(param);
+                    var result = friends.Select(x => new UserExtended(x)).ToList();
+                    return result;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    return new List<UserExtended>();
+                }
             }
         }
 

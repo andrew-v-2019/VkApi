@@ -169,6 +169,7 @@
     <Compile Include="Interfaces\IMessagesService.cs" />
     <Compile Include="Models\Account.cs" />
     <Compile Include="Models\CacheKeys.cs" />
+    <Compile Include="Models\CityExtended.cs" />
     <Compile Include="Models\LikeClickerStrategy.cs" />
     <Compile Include="Models\Users\AgeRange.cs" />
     <Compile Include="Models\Users\UserExtended.cs" />

@@ -2,8 +2,8 @@
 {
     public enum LikeClickerStrategy
     {
-        GroupMembers,
-        PostsLikers,
-        SearchResults
+        GroupMembers = 0,
+        PostsLikers = 1,
+        SearchResults =2
     }
 }
