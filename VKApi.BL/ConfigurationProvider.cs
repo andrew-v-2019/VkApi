@@ -32,7 +32,7 @@ namespace VKApi.BL
 
                 return configValue;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return defaultValue;
             }
