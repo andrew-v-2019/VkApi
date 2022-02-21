@@ -1,20 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
-using VKApi.BL.Interfaces;
-using VKApi.BL.Models;
-using VKApi.BL.Models.Users;
-using VKApi.BL.Services;
-using VKApi.BL.Unity;
-using VkNet;
-using VkNet.Enums.SafetyEnums;
-using VkNet.Model.Attachments;
-
-namespace VKApi.LikeClicker
+﻿namespace VKApi.LikeClicker
 {
+    using ServiceInjector;
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Globalization;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using BL.Interfaces;
+    using BL.Models;
+    using BL.Models.Users;
+    using BL.Services;
+    using VkNet;
+    using VkNet.Enums.SafetyEnums;
+    using VkNet.Model.Attachments;
+
     public static class Program
     {
         private static ILikesService _likesService;
@@ -62,11 +62,10 @@ namespace VKApi.LikeClicker
 
             var minDateConfig = _configurationProvider.GetConfig("MinDateForPosts");
 
-            if (!string.IsNullOrWhiteSpace(minDateConfig)) 
+            if (!string.IsNullOrWhiteSpace(minDateConfig))
             {
                 MinDateForPosts = DateTime.ParseExact(minDateConfig, "d", CultureInfo.InvariantCulture);
             }
-          
         }
 
         private static async Task Main()
@@ -80,7 +79,7 @@ namespace VKApi.LikeClicker
 
             Console.Clear();
             Console.WriteLine("Get user ids...");
-           
+
             var blackListedUserIds = _userService.GetBannedIds().Distinct().ToList();
 
             var filteredUsers = await _likeClickerService.GetUserIdsByStrategyAsync(_strategy,
@@ -88,7 +87,6 @@ namespace VKApi.LikeClicker
 
             using (var api = _apiFactory.CreateVkApi())
             {
-
                 var counter = 0;
                 var count = filteredUsers.Count - 1;
                 do
@@ -116,6 +114,7 @@ namespace VKApi.LikeClicker
                         {
                             result = LikeProfilePhotos(profilePhotos, api, user);
                         }
+
                         counter++;
 
                         var message =
@@ -134,7 +133,6 @@ namespace VKApi.LikeClicker
                         Console.WriteLine("Exception:" + e.Message);
                         System.Threading.Thread.Sleep(TimeSpan.FromMinutes(5));
                     }
-
                 } while (counter < count);
             }
 
@@ -157,6 +155,7 @@ namespace VKApi.LikeClicker
                 {
                     recentlyLikedCount++;
                 }
+
                 if (recentlyLikedCount >= _skipRecentlyLikedProfilesPhotosCount)
                 {
                     skip = true;
@@ -185,6 +184,7 @@ namespace VKApi.LikeClicker
                         api);
                     likedPhotosCounter++;
                 }
+
                 if (likedPhotosCounter >= _profilePhotosToLike)
                 {
                     break;
@@ -193,6 +193,5 @@ namespace VKApi.LikeClicker
 
             return result;
         }
-
     }
 }

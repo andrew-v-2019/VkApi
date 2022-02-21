@@ -4,11 +4,11 @@
     <PropertyGroup>
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-        <ProjectGuid>{8C5027ED-B4D3-4DD4-8582-45646DA79C25}</ProjectGuid>
-        <OutputType>Exe</OutputType>
+        <ProjectGuid>{D3BC6233-5AC7-4DE7-8DF4-2C8EB71FAF04}</ProjectGuid>
+        <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>Inst.Api</RootNamespace>
-        <AssemblyName>Inst.Api</AssemblyName>
+        <RootNamespace>Inst.Api.Services</RootNamespace>
+        <AssemblyName>Inst.Api.Services</AssemblyName>
         <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
@@ -36,39 +36,11 @@
           <HintPath>..\packages\Portable.BouncyCastle.1.8.6.7\lib\net40\BouncyCastle.Crypto.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="Flurl, Version=2.8.2.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\packages\Flurl.2.8.2\lib\net40\Flurl.dll</HintPath>
-          <Private>True</Private>
-        </Reference>
-        <Reference Include="Flurl.Http, Version=2.4.2.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\packages\Flurl.Http.2.4.2\lib\net46\Flurl.Http.dll</HintPath>
-          <Private>True</Private>
-        </Reference>
-        <Reference Include="HtmlAgilityPack, Version=1.11.23.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a">
-          <HintPath>..\packages\HtmlAgilityPack.1.11.23\lib\Net45\HtmlAgilityPack.dll</HintPath>
-          <Private>True</Private>
-        </Reference>
         <Reference Include="InstagramApiSharp, Version=1.7.1.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>..\packages\InstagramApiSharp.1.7.1\lib\net461\InstagramApiSharp.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
-          <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.7.0.0-preview.1.22076.8\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
-          <Private>True</Private>
-        </Reference>
         <Reference Include="Microsoft.CSharp" />
-        <Reference Include="Microsoft.Extensions.DependencyInjection, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
-          <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.7.0.0-preview.1.22076.8\lib\net462\Microsoft.Extensions.DependencyInjection.dll</HintPath>
-          <Private>True</Private>
-        </Reference>
-        <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
-          <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.7.0.0-preview.1.22076.8\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
-          <Private>True</Private>
-        </Reference>
-        <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=2.1.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
-          <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.2.1.0\lib\netstandard2.0\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
-          <Private>True</Private>
-        </Reference>
         <Reference Include="mscorlib" />
         <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
           <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -76,6 +48,7 @@
         </Reference>
         <Reference Include="System" />
         <Reference Include="System.ComponentModel.Composition" />
+        <Reference Include="System.Configuration" />
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
         <Reference Include="System.IO, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -91,7 +64,7 @@
           <Private>True</Private>
         </Reference>
         <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-          <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.3\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+          <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
           <Private>True</Private>
         </Reference>
         <Reference Include="System.Security.Cryptography.Algorithms, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -110,36 +83,25 @@
           <HintPath>..\packages\System.Security.Cryptography.X509Certificates.4.3.0\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
-          <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
+        <Reference Include="System.Xml" />
+        <Reference Include="Unity.Abstractions, Version=5.11.5.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0">
+          <HintPath>..\packages\Unity.5.11.6\lib\net47\Unity.Abstractions.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="System.Xml" />
-        <Reference Include="VkNet, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\packages\VkNet.1.52.0\lib\net461\VkNet.dll</HintPath>
+        <Reference Include="Unity.Container, Version=5.11.7.0, Culture=neutral, PublicKeyToken=489b6accfaf20ef0">
+          <HintPath>..\packages\Unity.5.11.6\lib\net47\Unity.Container.dll</HintPath>
           <Private>True</Private>
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Program.cs" />
+        <Compile Include="InstApiFactory.cs" />
+        <Compile Include="Interfaces\IInstApiFactory.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <ItemGroup>
-      <None Include="App.config" />
       <None Include="packages.config" />
-      <None Include="PrivateSettings.config">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\Inst.Api.Services\Inst.Api.Services.csproj">
-        <Project>{d3bc6233-5ac7-4de7-8df4-2c8eb71faf04}</Project>
-        <Name>Inst.Api.Services</Name>
-      </ProjectReference>
-      <ProjectReference Include="..\ServiceInjector\ServiceInjector.csproj">
-        <Project>{407c43b0-5725-48b8-b413-860fb486d38b}</Project>
-        <Name>ServiceInjector</Name>
-      </ProjectReference>
       <ProjectReference Include="..\VKApi.BL\VKApi.BL.csproj">
         <Project>{0ca4f9ac-ac26-4c74-9a94-c7cc6ebb46b1}</Project>
         <Name>VKApi.BL</Name>

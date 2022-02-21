@@ -1,74 +1,57 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using InstagramApiSharp;
-using InstagramApiSharp.API;
-using InstagramApiSharp.API.Builder;
-using InstagramApiSharp.Classes;
-using InstagramApiSharp.Logger;
+﻿
+
+using System;
+using System.Linq;
+using VkNet.Enums.Filters;
 
 namespace Inst.Api
 {
+    using System.Threading.Tasks;
+    using Services;
+    using InstagramApiSharp;
+    using ServiceInjector;
+    using VKApi.BL.Interfaces;
+    using Services.Interfaces;
+
     internal static class Program
     {
-        public static async Task Main(string[] args)
+        private static IVkApiFactory _apiFactory;
+        private static IConfigurationProvider _configurationProvider;
+        private static IUserService _userService;
+        private static IInstApiFactory _instApiFactory;
+
+        private static void InjectServices()
         {
-            var instApi = await Login();
-            var blockedUsers = await instApi.UserProcessor.GetBlockedUsersAsync(PaginationParameters.MaxPagesToLoad(1));
+            _userService = ServiceInjector.Retrieve<IUserService>();
+            _apiFactory = ServiceInjector.Retrieve<IVkApiFactory>();
+            _configurationProvider = ServiceInjector.Retrieve<IConfigurationProvider>();
+            _instApiFactory = ServiceInjector.Retrieve<IInstApiFactory>();
         }
 
-        private static async Task<IInstaApi> Login()
+        public static async Task Main(string[] args)
         {
-            var userSession = new UserSessionData
-            {
-                UserName = "index.out.of.range",
-                Password = "Kludgekludge1"
-            };
+            ServiceInjector.ConfigureServices();
+            InjectServices();
 
-            var instaApi = InstaApiBuilder.CreateBuilder()
-                .SetUser(userSession)
-                .UseLogger(new DebugLogger(LogLevel.Exceptions))
-                .Build();
-            const string stateFile = "state.bin";
-            try
+            var instApi = await _instApiFactory.Login();
+            // var blockedUsers = await instApi.UserProcessor.GetBlockedUsersAsync(PaginationParameters.MaxPagesToLoad(1));
+
+            var bannedIds = _userService.GetBannedIds();
+            var bannedUsers = _userService.GetUsersByIds(bannedIds, ProfileFields.Connections);
+
+            var bannedUserInsts = bannedUsers.Where(x => x.Connections != null).Select(x => x).ToList()
+                .Where(x => !string.IsNullOrWhiteSpace(x.Connections.Instagram)).Select(x => x).ToList()
+                .Select(x => x.Connections.Instagram).ToList();
+
+            foreach (var insUserName in bannedUserInsts)
             {
-                
-                if (File.Exists(stateFile))
-                {
-                    Console.WriteLine("Loading state from file");
-                    using (var fs = File.OpenRead(stateFile))
-                    {
-                        await instaApi.LoadStateDataFromStreamAsync(fs);
-                    
-                    }
-                }
+                var userInfo = await instApi.UserProcessor.GetUserAsync(insUserName);
+                await instApi.UserProcessor.BlockUserAsync(userInfo.Value.Pk);
+
+                var sleep = TimeSpan.FromMinutes(1);
+                System.Threading.Thread.Sleep(sleep);
+
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-
-            if (!instaApi.IsUserAuthenticated)
-            {
-                // login
-                Console.WriteLine($"Logging in as {userSession.UserName}");
-                var logInResult = await instaApi.LoginAsync();
-                if (!logInResult.Succeeded)
-                {
-                    Console.WriteLine($"Unable to login: {logInResult.Info.Message}");
-                    return instaApi;
-                }
-            }
-
-            var state = await instaApi.GetStateDataAsStreamAsync();
-
-            using (var fileStream = File.Create(stateFile))
-            {
-                state.Seek(0, SeekOrigin.Begin);
-                await state.CopyToAsync(fileStream);
-            }
-
-            return instaApi;
         }
     }
 }

@@ -1,10 +1,15 @@
-﻿using Unity;
-using Unity.Lifetime;
-using VKApi.BL.Interfaces;
-using VKApi.BL.Services;
+﻿
 
-namespace VKApi.BL.Unity
+namespace ServiceInjector
 {
+    using Inst.Api.Services;
+    using Inst.Api.Services.Interfaces;
+    using Unity;
+    using Unity.Lifetime;
+    using VKApi.BL;
+    using VKApi.BL.Interfaces;
+    using VKApi.BL.Services;
+    
     public static class ServiceInjector
     {
         private static readonly UnityContainer UnityContainer = new UnityContainer();
@@ -12,10 +17,7 @@ namespace VKApi.BL.Unity
         {
             UnityContainer.RegisterType<I, T>(new ContainerControlledLifetimeManager());
         }
-        public static void InjectStub<I>(I instance)
-        {
-            UnityContainer.RegisterInstance(instance, new ContainerControlledLifetimeManager());
-        }
+ 
         public static T Retrieve<T>()
         {
             return UnityContainer.Resolve<T>();
@@ -34,6 +36,8 @@ namespace VKApi.BL.Unity
             Register<ICitiesService, CitiesService>();
             Register<ILikeClickerService, LikeClickerService>();
             Register<ICacheService, CacheService>();
+            Register<ICacheService, CacheService>();
+            Register<IInstApiFactory, InstApiFactory>();
         }
     }
 }

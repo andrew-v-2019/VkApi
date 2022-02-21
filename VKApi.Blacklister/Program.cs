@@ -1,27 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using VkNet;
-using VkNet.Enums;
-using VkNet.Enums.Filters;
-using VkNet.Model;
-using VKApi.BL;
-using VKApi.BL.Interfaces;
-using VKApi.BL.Models;
-using VKApi.BL.Unity;
-using VkNet.Model.RequestParams;
-using System.Globalization;
-using VKApi.BL.Extensions;
-using VKApi.BL.Models.Users;
-
-namespace VKApi.Console.Blacklister
+﻿namespace VKApi.Console.Blacklister
 {
+    using ServiceInjector;
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using VkNet;
+    using VkNet.Enums;
+    using VkNet.Enums.Filters;
+    using VkNet.Model;
+    using BL;
+    using BL.Interfaces;
+    using BL.Models;
+    using VkNet.Model.RequestParams;
+    using System.Globalization;
+    using BL.Extensions;
+    using BL.Models.Users;
+
     internal static class Program
     {
         private static IVkApiFactory _apiFactory;
-
         private static IConfigurationProvider _configurationProvider;
 
         private static IUserService _userService;
@@ -86,10 +85,11 @@ namespace VKApi.Console.Blacklister
             _blacklistMembersOfChatId =
                 _configurationProvider.GetConfig("BlacklistMembersOfChatId", _blacklistMembersOfChatId);
 
-            _blacklistFriendsOfUserId = _configurationProvider.GetConfig("BlacklistFriendsOfUserId", _blacklistFriendsOfUserId);
+            _blacklistFriendsOfUserId =
+                _configurationProvider.GetConfig("BlacklistFriendsOfUserId", _blacklistFriendsOfUserId);
 
             _blackListGroupIds =
-               _configurationProvider.GetConfig("BlackListGroupIds", _blackListGroupIds);
+                _configurationProvider.GetConfig("BlackListGroupIds", _blackListGroupIds);
 
 
             _strategy = _configurationProvider.GetConfig("Strategy", _strategy);
@@ -168,7 +168,6 @@ namespace VKApi.Console.Blacklister
             {
                 foreach (var f in friedsOfUserIds)
                 {
-
                     var needBlackList = SatisfyBySecondAlgorithm(f);
                     if (!needBlackList)
                     {
@@ -198,7 +197,6 @@ namespace VKApi.Console.Blacklister
 
                 foreach (var f in usersForBackgroundWork)
                 {
-
                     var needBlackList = SatisfyBySecondAlgorithm(f);
                     if (!needBlackList)
                     {
@@ -245,7 +243,8 @@ namespace VKApi.Console.Blacklister
             return res;
         }
 
-        private static async Task<List<UserExtended>> GetUsersForBackgroundWork(List<CityExtended> cities, List<long> blackListedUserIds, int? count = null)
+        private static async Task<List<UserExtended>> GetUsersForBackgroundWork(List<CityExtended> cities,
+            List<long> blackListedUserIds, int? count = null)
         {
             var likeClickerUsers = await _likeClickerService.GetUserIdsByStrategyAsync(_strategy,
                 _groupNames, new AgeRange(17, 30), _cityIds,
@@ -402,6 +401,7 @@ namespace VKApi.Console.Blacklister
             {
                 _cacheService.Append(u.Id, CacheKeys.BannedUserIds.ToString());
             }
+
             return result;
         }
 
@@ -460,13 +460,14 @@ namespace VKApi.Console.Blacklister
                     //throw e;
                 }
             }
+
             timeToSleepAfterError = TimeSpan.FromSeconds(_secondsToSleepAfterOtherExceptions);
 
             return timeToSleepAfterError;
-
         }
 
-        private static List<UserExtended> GetGroupsMembersByGroupIds(long[] blackListGroupIds, List<long> blackListedUserIds)
+        private static List<UserExtended> GetGroupsMembersByGroupIds(long[] blackListGroupIds,
+            List<long> blackListedUserIds)
         {
             var badUsers = new List<UserExtended>();
 
@@ -486,9 +487,7 @@ namespace VKApi.Console.Blacklister
                     System.Console.WriteLine($"vk.com/club{groupId} - hides members");
                     var hideGroupUsers = GetGroupsMembersInHiddenGroup(groupId, blackListedUserIds).Distinct();
                     badUsers.AddRange(hideGroupUsers);
-
                 }
-
             }
 
             return badUsers.Distinct().ToList();
@@ -502,6 +501,5 @@ namespace VKApi.Console.Blacklister
             var users = _groupService.GetGroupPostsLickers(groupId, blackListedUserIds, minDate);
             return users;
         }
-
     }
 }
